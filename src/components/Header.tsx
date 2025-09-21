@@ -6,9 +6,10 @@ import Dropdown from './Dropdown';
 
 interface HeaderProps {
     title: string;
+    rightIcon?: 'globe' | 'logout' | 'none';
 }
 
-const Header = ({ title }: HeaderProps) => {
+const Header = ({ title, rightIcon = 'globe' }: HeaderProps) => {
     const [isLangModalOpen, setIsLangModalOpen] = useState(false);
     const [currentLang, setCurrentLang] = useState<'en' | 'ko'>('en');
 
@@ -22,18 +23,39 @@ const Header = ({ title }: HeaderProps) => {
         setIsLangModalOpen(false);
     };
 
-    return (
-        <header className="fixed top-0 w-full bg-[#191922] z-30 safe-area-padding-top">
-            <div className="max-w-md mx-auto h-[66px] sm:h-[72px] flex justify-between items-center px-4">
-                <h1 className="font-bold text-[20px] sm:text-[24px] text-white">{title}</h1>
+    const renderRightIcon = () => {
+        if (rightIcon === 'globe') {
+            return (
                 <div className="relative">
                     <button onClick={() => setIsLangModalOpen((prev) => !prev)}>
                         <Image src="/icons/globe-icon.svg" alt="Language" width={30} height={30} />
                     </button>
                     {isLangModalOpen && (
-                        <Dropdown options={languageOptions} selected={currentLang} onSelect={handleLanguageSelect} />
+                        <Dropdown
+                            options={languageOptions}
+                            selected={currentLang}
+                            onSelect={handleLanguageSelect}
+                            widthClass="w-36"
+                        />
                     )}
                 </div>
+            );
+        }
+        if (rightIcon === 'logout') {
+            return (
+                <button onClick={() => alert('Logout clicked!')}>
+                    <Image src="/icons/logout.svg" alt="Logout" width={30} height={30} />
+                </button>
+            );
+        }
+        return null;
+    };
+
+    return (
+        <header className="fixed top-0 w-full bg-[#191922] z-30 safe-area-padding-top">
+            <div className="max-w-md mx-auto h-[66px] sm:h-[72px] flex justify-between items-center px-4">
+                <h1 className="font-bold text-[20px] sm:text-[24px] text-white">{title}</h1>
+                {renderRightIcon()}
             </div>
         </header>
     );

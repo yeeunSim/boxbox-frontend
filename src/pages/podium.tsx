@@ -4,30 +4,32 @@ import { useState } from 'react';
 import Image from 'next/image';
 
 import Dropdown from '@/components/Dropdown';
-import RadioModal from '@/components/RadioModal';
+// 1. PodiumModal을 import 합니다.
+import PodiumModal from '@/components/PodiumModal';
 
 interface User {
     id: number;
     nickname: string;
     likes: number;
     message: string;
+    isLiked: boolean; // 좋아요 상태를 위한 isLiked 속성 추가
 }
 
 const dummyData: User[] = [
-    { id: 1, nickname: 'JHKIM', likes: 726, message: 'Go get it, Valtteri! 🚀' },
-    { id: 2, nickname: 'JAMES', likes: 276, message: 'Go get it, Valtteri! 🚀' },
-    { id: 3, nickname: 'SLIVER ARROWS', likes: 163, message: 'Go get it, Valtteri! 🚀' },
-    { id: 4, nickname: 'WJDWLR03', likes: 163, message: 'Go get it, Valtteri! 🚀' },
-    { id: 5, nickname: 'PDD0818', likes: 163, message: 'Go get it, Valtteri! 🚀' },
-    { id: 6, nickname: 'GAMJA', likes: 163, message: 'Go get it, Valtteri! 🚀' },
-    { id: 7, nickname: 'BOTTAS', likes: 163, message: 'Go get it, Valtteri! 🚀' },
-    { id: 8, nickname: 'HAMJIZZANG', likes: 163, message: 'Go get it, Valtteri! 🚀' },
-    { id: 9, nickname: 'LEWIS', likes: 163, message: 'Go get it, Valtteri! 🚀' },
-    { id: 10, nickname: 'MAX', likes: 163, message: 'Go get it, Valtteri! 🚀' },
-    { id: 11, nickname: 'VERSTAPPEN', likes: 163, message: 'Go get it, Valtteri! 🚀' },
-    { id: 12, nickname: 'CHECO', likes: 163, message: 'Go get it, Valtteri! 🚀' },
-    { id: 13, nickname: 'SAINZ', likes: 163, message: 'Go get it, Valtteri! 🚀' },
-    { id: 14, nickname: 'LECLERC', likes: 163, message: 'Go get it, Valtteri! 🚀' },
+    { id: 1, nickname: 'JHKIM', likes: 726, message: 'Go get it, Valtteri! 🚀', isLiked: false },
+    { id: 2, nickname: 'JAMES', likes: 276, message: 'Go get it, Valtteri! 🚀', isLiked: true },
+    { id: 3, nickname: 'SLIVER ARROWS', likes: 163, message: 'Go get it, Valtteri! 🚀', isLiked: false },
+    { id: 4, nickname: 'LEWIS', likes: 98, message: 'Go get it, Valtteri! 🚀', isLiked: false },
+    { id: 5, nickname: 'MAX', likes: 87, message: 'Go get it, Valtteri! 🚀', isLiked: false },
+    { id: 6, nickname: 'SEBASTIAN', likes: 54, message: 'Go get it, Valtteri! 🚀', isLiked: false },
+    { id: 7, nickname: 'CHARLES', likes: 32, message: 'Go get it, Valtteri! 🚀', isLiked: false },
+    { id: 8, nickname: 'GEORGE', likes: 21, message: 'Go get it, Valtteri! 🚀', isLiked: false },
+    { id: 9, nickname: 'LANDO', likes: 19, message: 'Go get it, Valtteri! 🚀', isLiked: false },
+    { id: 10, nickname: 'VALTTERI', likes: 7, message: 'Go get it, Valtteri! 🚀', isLiked: false },
+    { id: 11, nickname: 'PIERRE', likes: 4, message: 'Go get it, Valtteri! 🚀', isLiked: false },
+    { id: 12, nickname: 'KIMI', likes: 2, message: 'Go get it, Valtteri! 🚀', isLiked: false },
+    { id: 13, nickname: 'MICK', likes: 1, message: 'Go get it, Valtteri! 🚀', isLiked: false },
+    { id: 14, nickname: 'NICO', likes: 0, message: 'Go get it, Valtteri! 🚀', isLiked: false },
 ];
 
 const PodiumPage = () => {
@@ -35,16 +37,28 @@ const PodiumPage = () => {
     const [filterType, setFilterType] = useState<'popular' | 'latest'>('popular');
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
+    // 2. 유저 데이터를 state로 관리하여 좋아요 상태 변경 시 리렌더링되도록 합니다.
+    const [users, setUsers] = useState<User[]>([...dummyData].sort((a, b) => b.likes - a.likes));
+
+    // 3. 좋아요 버튼 클릭 시 실행될 핸들러 함수를 만듭니다.
+    const handleLike = (id: number) => {
+        setUsers((currentUsers) =>
+            currentUsers.map((user) => (user.id === id ? { ...user, isLiked: !user.isLiked } : user))
+        );
+        // 선택된 유저 정보도 업데이트하여 모달에 바로 반영되도록 합니다.
+        if (selectedUser && selectedUser.id === id) {
+            setSelectedUser((prev) => (prev ? { ...prev, isLiked: !prev.isLiked } : null));
+        }
+    };
+
     const filterOptions = [
         { value: 'popular', label: 'Popular' },
         { value: 'latest', label: 'Latest' },
     ] as const;
 
-    const sortedData = [...dummyData].sort((a, b) => b.likes - a.likes);
-
     return (
         <div className="w-full max-w-md mx-auto flex flex-col flex-1">
-            {/* 검색 + 필터 */}
+            {/* 검색 + 필터 UI (기존과 동일) */}
             <div className="sticky top-[66px] sm:top-[72px] px-4 py-3 flex items-center gap-3 bg-[#191922] z-20">
                 <input
                     type="text"
@@ -85,7 +99,7 @@ const PodiumPage = () => {
             <div className="flex-1 overflow-y-auto px-4 pb-[100px] mt-14">
                 <div className="bg-[#22202A] rounded-2xl overflow-hidden mt-4">
                     <ul className="flex flex-col gap-3 p-4">
-                        {sortedData.map((user, idx) => (
+                        {users.map((user, idx) => (
                             <li
                                 key={user.id}
                                 onClick={() => setSelectedUser(user)}
@@ -127,17 +141,23 @@ const PodiumPage = () => {
                 </div>
             </div>
 
-            {/* 라디오 모달 */}
-            {selectedUser && (
-                <RadioModal
-                    isOpen={!!selectedUser}
-                    nickname={selectedUser.nickname}
-                    message={selectedUser.message}
-                    number={`#${selectedUser.id}`}
-                    showLike
-                    onClose={() => setSelectedUser(null)}
-                />
-            )}
+            {/* 4. PodiumModal 컴포넌트를 호출하고 props를 전달합니다. */}
+            <PodiumModal
+                isOpen={!!selectedUser}
+                nickname={selectedUser?.nickname || ''}
+                message={
+                    selectedUser
+                        ? {
+                              id: selectedUser.id,
+                              number: `#${selectedUser.id}`,
+                              text: selectedUser.message,
+                              isLiked: selectedUser.isLiked,
+                          }
+                        : null
+                }
+                onClose={() => setSelectedUser(null)}
+                onLike={handleLike}
+            />
         </div>
     );
 };

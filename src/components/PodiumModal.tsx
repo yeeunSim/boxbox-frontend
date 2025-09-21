@@ -3,7 +3,6 @@
 import Image from 'next/image';
 import html2canvas from 'html2canvas';
 
-// 단일 메시지의 타입을 정의합니다.
 type Message = {
     id: number;
     number: string;
@@ -14,7 +13,7 @@ type Message = {
 export interface PodiumModalProps {
     isOpen: boolean;
     nickname: string;
-    message: Message | null; // 단일 메시지 객체 또는 null
+    message: Message | null;
     onClose: () => void;
     onLike: (id: number) => void;
 }
@@ -23,7 +22,6 @@ const PodiumModal = ({ isOpen, nickname, message, onClose, onLike }: PodiumModal
     if (!isOpen || !message) return null;
 
     const handleDownload = () => {
-        // 캡처할 DOM의 id가 다른 모달과 겹치지 않도록 고유하게 만듭니다.
         const target = document.getElementById(`radio-card-podium-${message.id}`);
         if (!target) return;
 

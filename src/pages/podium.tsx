@@ -1,10 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
-
 import Dropdown from '@/components/Dropdown';
-// 1. PodiumModal을 import 합니다.
 import PodiumModal from '@/components/PodiumModal';
 
 interface User {
@@ -12,7 +10,7 @@ interface User {
     nickname: string;
     likes: number;
     message: string;
-    isLiked: boolean; // 좋아요 상태를 위한 isLiked 속성 추가
+    isLiked: boolean;
 }
 
 const dummyData: User[] = [
@@ -36,16 +34,38 @@ const PodiumPage = () => {
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [filterType, setFilterType] = useState<'popular' | 'latest'>('popular');
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [displayedUsers, setDisplayedUsers] = useState<User[]>([]);
 
-    // 2. 유저 데이터를 state로 관리하여 좋아요 상태 변경 시 리렌더링되도록 합니다.
-    const [users, setUsers] = useState<User[]>([...dummyData].sort((a, b) => b.likes - a.likes));
+    const popularRanks = useMemo(() => {
+        const sortedByLikes = [...dummyData].sort((a, b) => b.likes - a.likes);
+        const rankMap = new Map<number, number>();
+        sortedByLikes.forEach((user, index) => {
+            rankMap.set(user.id, index);
+        });
+        return rankMap;
+    }, []);
 
-    // 3. 좋아요 버튼 클릭 시 실행될 핸들러 함수를 만듭니다.
+    useEffect(() => {
+        let result = [...dummyData];
+
+        if (searchTerm.trim() !== '') {
+            result = result.filter((user) => user.nickname.toLowerCase().includes(searchTerm.toLowerCase()));
+        }
+
+        if (filterType === 'popular') {
+            result.sort((a, b) => b.likes - a.likes);
+        } else {
+            result.sort((a, b) => b.id - a.id);
+        }
+
+        setDisplayedUsers(result);
+    }, [searchTerm, filterType]);
+
     const handleLike = (id: number) => {
-        setUsers((currentUsers) =>
+        setDisplayedUsers((currentUsers) =>
             currentUsers.map((user) => (user.id === id ? { ...user, isLiked: !user.isLiked } : user))
         );
-        // 선택된 유저 정보도 업데이트하여 모달에 바로 반영되도록 합니다.
         if (selectedUser && selectedUser.id === id) {
             setSelectedUser((prev) => (prev ? { ...prev, isLiked: !prev.isLiked } : null));
         }
@@ -58,12 +78,14 @@ const PodiumPage = () => {
 
     return (
         <div className="w-full max-w-md mx-auto flex flex-col flex-1">
-            {/* 검색 + 필터 UI (기존과 동일) */}
+            {/* 검색 + 필터 */}
             <div className="sticky top-[66px] sm:top-[72px] px-4 py-3 flex items-center gap-3 bg-[#191922] z-20">
                 <input
                     type="text"
                     placeholder="Nickname Search"
                     className="flex-1 bg-[#22202A] rounded-lg px-3 py-3 text-sm text-white placeholder-gray-400 focus:outline-none"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                 />
                 <button className="w-[47px] h-[46px] flex items-center justify-center rounded-lg bg-[#22202A]">
                     <Image src="/icons/search.svg" alt="Search" width={23} height={23} />
@@ -96,52 +118,56 @@ const PodiumPage = () => {
             </div>
 
             {/* 순위 리스트 */}
-            <div className="flex-1 overflow-y-auto px-4 pb-[100px] mt-14">
+
+            <div className="h-[700px] overflow-y-auto px-4 pb-4 mt-14 scrollbar-hide">
                 <div className="bg-[#22202A] rounded-2xl overflow-hidden mt-4">
-                    <ul className="flex flex-col gap-3 p-4">
-                        {users.map((user, idx) => (
-                            <li
-                                key={user.id}
-                                onClick={() => setSelectedUser(user)}
-                                className={`cursor-pointer rounded-lg px-4 py-3 flex items-center justify-between ${
-                                    idx === 0
-                                        ? 'border-[2px] border-[#FDE56D] bg-[#22202A]'
-                                        : idx === 1
-                                        ? 'border-[2px] border-[#AEB7C2] bg-[#22202A]'
-                                        : idx === 2
-                                        ? 'border-[2px] border-[#886050] bg-[#22202A]'
-                                        : (idx + 1) % 3 === 2
-                                        ? 'bg-[#2A2833]'
-                                        : 'bg-[#22202A]'
-                                }`}
-                            >
-                                <div className="flex items-center gap-2">
-                                    {idx < 3 ? (
-                                        <Image
-                                            src={`/icons/trophy-${idx + 1}.svg`}
-                                            alt={`Trophy ${idx + 1}`}
-                                            width={20}
-                                            height={20}
-                                        />
-                                    ) : (
-                                        <span className="w-6 text-center font-bold">{idx + 1}</span>
-                                    )}
-                                    <div className="flex flex-col">
-                                        <span className="font-bold">{user.nickname}</span>
-                                        <span className="text-xs text-gray-300">“{user.message}”</span>
+                    <ul className="flex flex-col gap-3 p-4 pb-8">
+                        {displayedUsers.map((user, idx) => {
+                            const rank = popularRanks.get(user.id);
+
+                            return (
+                                <li
+                                    key={user.id}
+                                    onClick={() => setSelectedUser(user)}
+                                    className={`cursor-pointer rounded-lg px-4 py-3 flex items-center justify-between ${
+                                        rank === 0
+                                            ? 'border-[2px] border-[#FDE56D] bg-[#22202A]'
+                                            : rank === 1
+                                            ? 'border-[2px] border-[#AEB7C2] bg-[#22202A]'
+                                            : rank === 2
+                                            ? 'border-[2px] border-[#886050] bg-[#22202A]'
+                                            : (idx + 1) % 3 === 2
+                                            ? 'bg-[#2A2833]'
+                                            : 'bg-[#22202A]'
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        {rank !== undefined && rank < 3 ? (
+                                            <Image
+                                                src={`/icons/trophy-${rank + 1}.svg`}
+                                                alt={`Trophy ${rank + 1}`}
+                                                width={20}
+                                                height={20}
+                                            />
+                                        ) : (
+                                            <span className="w-6 text-center font-bold">{idx + 1}</span>
+                                        )}
+                                        <div className="flex flex-col">
+                                            <span className="font-bold">{user.nickname}</span>
+                                            <span className="text-xs text-gray-300">“{user.message}”</span>
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                    <Image src="/icons/likes.svg" alt="Likes" width={16} height={16} />
-                                    <span className="text-sm">{user.likes}</span>
-                                </div>
-                            </li>
-                        ))}
+                                    <div className="flex items-center gap-1">
+                                        <Image src="/icons/likes.svg" alt="Likes" width={16} height={16} />
+                                        <span className="text-sm">{user.likes}</span>
+                                    </div>
+                                </li>
+                            );
+                        })}
                     </ul>
                 </div>
             </div>
 
-            {/* 4. PodiumModal 컴포넌트를 호출하고 props를 전달합니다. */}
             <PodiumModal
                 isOpen={!!selectedUser}
                 nickname={selectedUser?.nickname || ''}

@@ -13,7 +13,7 @@ const BottomNav = () => {
     const router = useRouter();
 
     return (
-        <div className="fixed bottom-0 w-full bg-[#191222] z-30 safe-area-padding">
+        <div className="fixed bottom-0 w-full bg-[#22202A] z-30 safe-area-padding">
             <div className="max-w-md mx-auto px-4 py-3 sm:py-4 flex justify-between items-center">
                 {navItems.map((item) => {
                     const isActive = router.pathname === item.href;

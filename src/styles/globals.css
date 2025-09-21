@@ -3,14 +3,12 @@
 @font-face {
     font-family: 'Formula1';
     src: url('/fonts/Formula1-Bold_web_0.ttf') format('truetype');
-
     font-weight: bold;
 }
 
 @font-face {
     font-family: 'Formula1';
     src: url('/fonts/Formula1-Regular_web_0.ttf') format('truetype');
-
     font-weight: normal;
 }
 
@@ -23,6 +21,18 @@
 body {
     background: var(--background);
     color: var(--foreground);
-
     font-family: 'Formula1', sans-serif;
+}
+
+@layer utilities {
+    /* Chrome, Safari, Edge 등 WebKit 기반 브라우저용 */
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Firefox 용 */
+    .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
 }

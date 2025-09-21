@@ -198,10 +198,13 @@ const FanRadioPage = () => {
                 icon={<span>🚀</span>}
                 onPrimary={() => {
                     setModalOpen(false);
+                    // ✨ 수정된 부분 ✨
+                    confirmedNavigation.current = true;
                     router.push(`/my-page?modal=fan-radio&message=${encodeURIComponent(message)}`);
                 }}
                 onSecondary={() => setModalOpen(false)}
             />
+            {/* 이탈 확인 모달 */}
             <Modal
                 isOpen={showLeaveModal}
                 title="Leave this page?"

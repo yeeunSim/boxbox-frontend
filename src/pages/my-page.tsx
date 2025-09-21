@@ -6,7 +6,7 @@ import Image from 'next/image';
 
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
-// 1. MyPageModal을 import 합니다.
+
 import MyPageModal from '@/components/MyPageModal';
 
 const MyPage = () => {
@@ -16,7 +16,6 @@ const MyPage = () => {
     const [isFanRadioModalOpen, setIsFanRadioModalOpen] = useState(false);
     const [character, setCharacter] = useState<'female' | 'male'>('female');
 
-    // 2. 슬라이더에 사용할 메시지 배열 데이터를 state로 관리합니다. (API 연동 전 임시 데이터)
     const [fanMessages, setFanMessages] = useState([
         { id: 1, number: '#01', text: '첫 번째 팬라디오 메시지입니다.' },
         { id: 2, number: '#02', text: '두 번째 메시지입니다.' },
@@ -24,7 +23,6 @@ const MyPage = () => {
     ]);
 
     useEffect(() => {
-        // message 쿼리 파라미터는 더 이상 사용하지 않습니다.
         if (modal === 'fan-radio') {
             setIsFanRadioModalOpen(true);
         }
@@ -61,7 +59,6 @@ const MyPage = () => {
 
             <BottomNav />
 
-            {/* 3. MyPageModal 컴포넌트를 호출하고 props를 전달합니다. */}
             <MyPageModal
                 isOpen={isFanRadioModalOpen}
                 nickname="GAMJA"

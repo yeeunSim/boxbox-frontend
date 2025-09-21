@@ -77,7 +77,7 @@ const MyPageModal = ({
                             <Image src="/icons/message-delete.svg" alt="Delete" width={28} height={28} />
                         </button>
                     </div>
-                    {/* ✨ 여기가 수정된 부분입니다 ✨ */}
+
                     <span className="text-[#02F5D0] -translate-x-4 font-bold text-[18px]">
                         {currentMessage?.number}
                     </span>

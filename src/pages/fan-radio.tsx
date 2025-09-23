@@ -4,8 +4,11 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
 import Modal from '../components/Modal';
+import { useAuth } from '@/contexts/AuthContext';
 
 const FanRadioPage = () => {
+    const { isLoggedIn, openLoginModal } = useAuth();
+
     const router = useRouter();
     const [message, setMessage] = useState('');
     const [language, setLanguage] = useState<'ko' | 'en'>('ko');
@@ -15,6 +18,12 @@ const FanRadioPage = () => {
     const [showLeaveModal, setShowLeaveModal] = useState(false);
     const [nextPath, setNextPath] = useState('');
     const confirmedNavigation = useRef(false);
+    //  텍스트 입력 시도 시 로그인 모달을 띄우는 함수
+    const handleFocus = () => {
+        if (!isLoggedIn) {
+            openLoginModal();
+        }
+    };
 
     const banners = [
         `“TYPE YOUR WELCOME NOTE HERE 💌\nCOULD BE THE ONE BOTTAS ACTUALLY READS 👀”`,
@@ -24,9 +33,7 @@ const FanRadioPage = () => {
         `“YOUR WORDS, THEIR EARS 🎧\nSEND LOVE TO THE TRACKSIDE”`,
     ];
 
-    {
-        /* 배너 자동 전환 */
-    }
+    /* 배너 자동 전환 */
     useEffect(() => {
         const interval = setInterval(() => {
             setCurrentBanner((prev) => (prev + 1) % banners.length);
@@ -34,9 +41,7 @@ const FanRadioPage = () => {
         return () => clearInterval(interval);
     }, [banners.length]);
 
-    {
-        /* 페이지 이탈 방지 로직 */
-    }
+    /* 페이지 이탈 방지 로직 */
     useEffect(() => {
         const handleRouteChange = (url: string) => {
             if (message.length > 0 && !confirmedNavigation.current) {
@@ -155,33 +160,39 @@ const FanRadioPage = () => {
                 </div>
 
                 {/* 메시지 박스 */}
-                <div className="w-full h-[180px] sm:h-[210px] bg-[#22202A] rounded-[15px] relative">
+                <div className="w-full h-[180px] sm:h-[210px] rounded-[15px] relative">
                     <textarea
-                        className="w-full h-full p-4 bg-transparent text-white text-sm sm:text-base resize-none rounded-[15px] placeholder:text-[#5a6570]"
-                        placeholder={language === 'ko' ? '한국어로 입력해주세요 😉' : 'Please type in English only 😉'}
+                        className={`w-full h-full p-4 bg-[#22202A] text-sm sm:text-base resize-none rounded-[15px] placeholder:text-[#5a6570] ${
+                            !isLoggedIn ? 'text-gray-500' : 'text-white'
+                        }`}
+                        placeholder={
+                            isLoggedIn
+                                ? language === 'ko'
+                                    ? '한국어로 입력해주세요 😉'
+                                    : 'Please type in English only 😉'
+                                : '로그인 후 메시지를 작성할 수 있습니다.'
+                        }
                         value={message}
-                        onChange={(e) => {
-                            const input = e.target.value;
-                            if (language === 'ko') {
-                                const filtered = input.replace(/[^ㄱ-ㅎ가-힣0-9\s.,!?'"@#$%^&*()\-_=+]/g, '');
-                                setMessage(filtered);
-                            } else {
-                                const filtered = input.replace(/[^a-zA-Z0-9\s.,!?'"@#$%^&*()\-_=+]/g, '');
-                                setMessage(filtered);
-                            }
-                        }}
+                        onChange={(e) => setMessage(e.target.value)}
                         maxLength={500}
+                        readOnly={!isLoggedIn}
                     />
                     <div className="absolute bottom-4 right-4 text-[#444d56] text-[11px] sm:text-xs">
                         {message.length} / 500
                     </div>
+
+                    {/* 로그아웃 상태일 때만 보이는 투명 오버레이 */}
+                    {!isLoggedIn && (
+                        <div className="absolute inset-0 z-10 cursor-pointer rounded-[15px]" onClick={openLoginModal} />
+                    )}
                 </div>
 
                 {/* 전송 버튼 */}
                 <div className="flex justify-center mt-4 sm:mt-6">
                     <button
                         onClick={handleSend}
-                        className="w-full bg-[#02F5D0] text-[#383838] py-3 rounded-[15px] text-[15px] sm:text-base tracking-wide"
+                        disabled={!isLoggedIn}
+                        className="w-full bg-[#02F5D0] text-[#383838] py-3 rounded-[15px] text-[15px] sm:text-base tracking-wide disabled:cursor-not-allowed"
                     >
                         Send Fan Radio 📻
                     </button>
@@ -198,7 +209,7 @@ const FanRadioPage = () => {
                 icon={<span>🚀</span>}
                 onPrimary={() => {
                     setModalOpen(false);
-                    // ✨ 수정된 부분 ✨
+
                     confirmedNavigation.current = true;
                     router.push(`/my-page?modal=fan-radio&message=${encodeURIComponent(message)}`);
                 }}

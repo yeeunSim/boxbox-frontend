@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Dropdown from './Dropdown';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface HeaderProps {
     title: string;
@@ -10,6 +11,8 @@ interface HeaderProps {
 }
 
 const Header = ({ title, rightIcon = 'globe' }: HeaderProps) => {
+    const { isLoggedIn, login, logout } = useAuth();
+
     const [isLangModalOpen, setIsLangModalOpen] = useState(false);
     const [currentLang, setCurrentLang] = useState<'en' | 'ko'>('en');
 
@@ -43,7 +46,8 @@ const Header = ({ title, rightIcon = 'globe' }: HeaderProps) => {
         }
         if (rightIcon === 'logout') {
             return (
-                <button onClick={() => alert('Logout clicked!')}>
+                //  실제 logout 함수 연결
+                <button onClick={logout}>
                     <Image src="/icons/logout.svg" alt="Logout" width={30} height={30} />
                 </button>
             );
@@ -56,6 +60,20 @@ const Header = ({ title, rightIcon = 'globe' }: HeaderProps) => {
             <div className="max-w-md mx-auto h-[66px] sm:h-[72px] flex justify-between items-center px-4">
                 <h1 className="font-bold text-[20px] sm:text-[24px] text-white">{title}</h1>
                 {renderRightIcon()}
+            </div>
+
+            {/* 개발용 임시 테스트 버튼들을 추가 */}
+            <div className="fixed bottom-24 right-4 z-50 rounded-lg bg-gray-700 p-2 text-white shadow-lg">
+                <p className="text-center text-xs text-yellow-400">-- DEV-MODE --</p>
+                <p className="text-sm">현재 상태: {isLoggedIn ? '로그인' : '로그아웃'}</p>
+                <div className="mt-2 flex gap-2">
+                    <button onClick={login} className="rounded bg-green-500 px-3 py-1 text-sm">
+                        Login Test
+                    </button>
+                    <button onClick={logout} className="rounded bg-red-500 px-3 py-1 text-sm">
+                        Logout Test
+                    </button>
+                </div>
             </div>
         </header>
     );

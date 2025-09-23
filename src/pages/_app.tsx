@@ -1,13 +1,17 @@
+// src/pages/_app.tsx
+
 import '@/styles/globals.css';
 import type { AppProps } from 'next/app';
 import type { NextPage } from 'next';
+import { useRouter } from 'next/router';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import Modal from '@/components/Modal';
 
 type NextPageWithLayout = NextPage & {
     title?: string;
     hideLayout?: boolean;
-
     rightIconType?: 'globe' | 'logout' | 'none';
 };
 
@@ -15,27 +19,51 @@ type AppPropsWithLayout = AppProps & {
     Component: NextPageWithLayout;
 };
 
-export default function App({ Component, pageProps }: AppPropsWithLayout) {
+function AppContent({ Component, pageProps }: AppPropsWithLayout) {
+    const { isLoginModalOpen, closeLoginModal } = useAuth();
+    const router = useRouter();
+
+    const handleRedirectToLogin = () => {
+        closeLoginModal();
+        router.push('/login');
+    };
+
     const getTitle = Component.title ?? 'Default Title';
     const hideLayout = Component.hideLayout ?? false;
-
     const rightIcon = Component.rightIconType ?? 'globe';
 
-    if (hideLayout) {
-        return (
-            <div className="font-formula1">
-                <Component {...pageProps} />
-            </div>
-        );
-    }
-
     return (
-        <div className="relative bg-[#191922] text-white min-h-screen flex flex-col font-formula1">
-            <Header title={getTitle} rightIcon={rightIcon} />
-            <main className="flex-grow">
-                <Component {...pageProps} />
-            </main>
-            <BottomNav />
-        </div>
+        <>
+            {hideLayout ? (
+                <div className="font-formula1">
+                    <Component {...pageProps} />
+                </div>
+            ) : (
+                <div className="relative flex min-h-screen flex-col bg-[#191922] font-formula1 text-white">
+                    <Header title={getTitle} rightIcon={rightIcon} />
+                    <main className="flex-grow">
+                        <Component {...pageProps} />
+                    </main>
+                    <BottomNav />
+                </div>
+            )}
+            <Modal
+                isOpen={isLoginModalOpen}
+                title="Login Required"
+                message="This feature is available after logging&nbsp;in."
+                primaryText="Login"
+                secondaryText="Cancel"
+                onPrimary={handleRedirectToLogin}
+                onSecondary={closeLoginModal}
+            />
+        </>
+    );
+}
+
+export default function App(props: AppPropsWithLayout) {
+    return (
+        <AuthProvider>
+            <AppContent {...props} />
+        </AuthProvider>
     );
 }

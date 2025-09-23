@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import Dropdown from '@/components/Dropdown';
 import PodiumModal from '@/components/PodiumModal';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface User {
     id: number;
@@ -31,6 +32,8 @@ const dummyData: User[] = [
 ];
 
 const PodiumPage = () => {
+    const { isLoggedIn, openLoginModal } = useAuth();
+
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [filterType, setFilterType] = useState<'popular' | 'latest'>('popular');
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -63,11 +66,29 @@ const PodiumPage = () => {
     }, [searchTerm, filterType]);
 
     const handleLike = (id: number) => {
+        if (!isLoggedIn) {
+            openLoginModal();
+            return;
+        }
+
+        // 로그인이 되어 있다면, 기존 로직을 실행
         setDisplayedUsers((currentUsers) =>
-            currentUsers.map((user) => (user.id === id ? { ...user, isLiked: !user.isLiked } : user))
+            currentUsers.map((user) => {
+                if (user.id === id) {
+                    const newIsLiked = !user.isLiked;
+                    const newLikes = newIsLiked ? user.likes + 1 : user.likes - 1;
+                    return { ...user, isLiked: newIsLiked, likes: newLikes };
+                }
+                return user;
+            })
         );
         if (selectedUser && selectedUser.id === id) {
-            setSelectedUser((prev) => (prev ? { ...prev, isLiked: !prev.isLiked } : null));
+            setSelectedUser((prev) => {
+                if (!prev) return null;
+                const newIsLiked = !prev.isLiked;
+                const newLikes = newIsLiked ? prev.likes + 1 : prev.likes - 1;
+                return { ...prev, isLiked: newIsLiked, likes: newLikes };
+            });
         }
     };
 

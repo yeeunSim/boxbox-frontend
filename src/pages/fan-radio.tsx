@@ -32,7 +32,7 @@ const FanRadioPage = () => {
             setCurrentBanner((prev) => (prev + 1) % banners.length);
         }, 3000);
         return () => clearInterval(interval);
-    }, []);
+    }, [banners.length]);
 
     {
         /* 페이지 이탈 방지 로직 */

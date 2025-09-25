@@ -89,7 +89,7 @@ export default function SignUpPage() {
             <main className="flex min-h-screen items-center justify-center bg-black font-['Formula1']">
                 <div
                     className="relative flex h-screen w-full max-w-[430px] items-center justify-center bg-cover bg-center"
-                    style={{ backgroundImage: "url('/images/auth-bg.svg')" }}
+                    style={{ backgroundImage: "url('/images/intro-bg.svg')" }}
                 >
                     <div className="absolute inset-0 bg-black/70" />
                     <form
@@ -101,7 +101,7 @@ export default function SignUpPage() {
                             <p className="mt-1 text-[11px] text-gray-300">Join the pit wall and tune into Fan Radio!</p>
                         </div>
                         <div className="space-y-3">
-                            {/* 이메일, 비밀번호, 닉네임 입력란 (기존과 동일) */}
+                            {/* 이메일, 비밀번호, 닉네임 입력란 */}
                             <div className="flex items-center gap-2">
                                 <input
                                     type="email"

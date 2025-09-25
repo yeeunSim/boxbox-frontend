@@ -23,7 +23,7 @@ export default function LoginPage() {
             <main className="flex min-h-screen items-center justify-center bg-black font-['Formula1']">
                 <div
                     className="relative flex h-screen w-full max-w-[430px] items-center justify-center bg-cover bg-center"
-                    style={{ backgroundImage: "url('/images/auth-bg.svg')" }}
+                    style={{ backgroundImage: "url('/images/intro-bg.svg')" }}
                 >
                     <div className="absolute inset-0 bg-black/70" />
 

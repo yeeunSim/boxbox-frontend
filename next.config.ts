@@ -1,4 +1,3 @@
-// next.config.ts
 import { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
@@ -10,6 +9,16 @@ const nextConfig: NextConfig = {
             use: ['@svgr/webpack'],
         });
         return config;
+    },
+
+    async redirects() {
+        return [
+            {
+                source: '/',
+                destination: '/intro',
+                permanent: false,
+            },
+        ];
     },
 };
 

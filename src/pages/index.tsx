@@ -15,11 +15,10 @@ const MainPage = () => {
 
         // 2. 현재 시간을 사용자의 위치와 상관없이 항상 KST로 계산
         const now = new Date(); // 현재 사용자의 로컬 시간
-        const utc = now.getTime() + now.getTimezoneOffset() * 60000; // 로컬 시간을 UTC로 변환
+        const utc = now.getTime() + now.getTimezoneOffset() * 60000;
         const kstOffset = 9 * 60 * 60 * 1000; // KST는 UTC+9
         const todayInKorea = new Date(utc + kstOffset);
 
-        // 날짜만 비교하기 위해 한국 시간 기준의 '오늘' 날짜에서 시간 부분을 제거
         const today = new Date(todayInKorea.getFullYear(), todayInKorea.getMonth(), todayInKorea.getDate());
         today.setHours(0, 0, 0, 0);
 
@@ -83,7 +82,7 @@ const MainPage = () => {
             {/* 라디오 카드 */}
             <div
                 id="fan-radio-card"
-                className="bg-[#111111] rounded-xl mx-auto flex flex-col gap-1 w-[90%] max-w-[340px] mt-4"
+                className="bg-[#0F0F14] rounded-xl mx-auto flex flex-col gap-1 w-[90%] max-w-[340px] mt-4"
             >
                 <div className="p-4">
                     <h2 className="font-bold text-right text-[#02F5D0] text-[24px]">KOREA F1 FANS</h2>

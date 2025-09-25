@@ -6,8 +6,8 @@ import Image from 'next/image';
 
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
-
 import MyPageModal from '@/components/MyPageModal';
+import Modal from '@/components/Modal';
 
 const MyPage = () => {
     const router = useRouter();
@@ -15,6 +15,8 @@ const MyPage = () => {
 
     const [isFanRadioModalOpen, setIsFanRadioModalOpen] = useState(false);
     const [character, setCharacter] = useState<'female' | 'male'>('female');
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [deletingMessageId, setDeletingMessageId] = useState<number | null>(null);
 
     const [fanMessages, setFanMessages] = useState([
         { id: 1, number: '#01', text: '첫 번째 팬라디오 메시지입니다.' },
@@ -27,6 +29,20 @@ const MyPage = () => {
             setIsFanRadioModalOpen(true);
         }
     }, [modal]);
+
+    const handleDeleteRequest = (id: number) => {
+        setDeletingMessageId(id);
+        setIsDeleteModalOpen(true);
+    };
+
+    const handleConfirmDelete = () => {
+        if (deletingMessageId === null) return;
+
+        setFanMessages((currentMessages) => currentMessages.filter((message) => message.id !== deletingMessageId));
+
+        setIsDeleteModalOpen(false);
+        setDeletingMessageId(null);
+    };
 
     return (
         <div className="min-h-screen bg-[#191922]">
@@ -67,8 +83,20 @@ const MyPage = () => {
                     setIsFanRadioModalOpen(false);
                     router.replace('/my-page', undefined, { shallow: true });
                 }}
-                onEdit={(id) => console.log('Edit message ID:', id)}
-                onDelete={(id) => console.log('Delete message ID:', id)}
+                onDelete={handleDeleteRequest}
+            />
+
+            <Modal
+                isOpen={isDeleteModalOpen}
+                title="Delete Message?"
+                message="Are you sure you want to delete this radio message permanently?"
+                primaryText="Delete"
+                secondaryText="Cancel"
+                onPrimary={handleConfirmDelete}
+                onSecondary={() => {
+                    setIsDeleteModalOpen(false);
+                    setDeletingMessageId(null);
+                }}
             />
         </div>
     );

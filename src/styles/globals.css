@@ -2,13 +2,24 @@
 
 @font-face {
     font-family: 'Formula1';
-    src: url('/fonts/Formula1-Bold_web_0.ttf') format('truetype');
+    src: url('/fonts/Formula1-Bold-4.ttf') format('truetype');
     font-weight: bold;
 }
 
 @font-face {
     font-family: 'Formula1';
-    src: url('/fonts/Formula1-Regular_web_0.ttf') format('truetype');
+    src: url('/fonts/Formula1-Regular.ttf') format('truetype');
+    font-weight: normal;
+}
+@font-face {
+    font-family: 'RiaSans';
+    src: url('/fonts/RiaSans-Bold.ttf') format('truetype');
+    font-weight: bold;
+}
+
+@font-face {
+    font-family: 'RiaSans';
+    src: url('/fonts/RiaSans-Regular.ttf') format('truetype');
     font-weight: normal;
 }
 
@@ -21,7 +32,7 @@
 body {
     background: var(--background);
     color: var(--foreground);
-    font-family: 'Formula1', sans-serif;
+    font-family: 'Formula1', 'RiaSans', sans-serif;
 }
 
 @layer utilities {

@@ -1,8 +1,15 @@
 // src/pages/sign-up.tsx
 
-import { useState, FormEvent, ChangeEvent } from 'react';
+import { useState, FormEvent, ChangeEvent, Fragment } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
+import { Listbox, Transition } from '@headlessui/react';
+
+const genderOptions = [
+    { id: 'male', name: 'Male' },
+    { id: 'female', name: 'Female' },
+    { id: 'none', name: 'Prefer not to say' },
+];
 
 export default function SignUpPage() {
     const router = useRouter();
@@ -14,8 +21,9 @@ export default function SignUpPage() {
         confirmPassword: '',
         nickname: '',
         dateOfBirth: '',
-        gender: '',
     });
+
+    const [selectedGender, setSelectedGender] = useState<{ id: string; name: string } | null>(null);
 
     const [agreements, setAgreements] = useState({
         all: false,
@@ -23,9 +31,26 @@ export default function SignUpPage() {
         optional: false,
     });
 
-    const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setFormData((prevState) => ({ ...prevState, [name]: value }));
+    };
+
+    // 생년월일 자동 서식 변환 핸들러
+    const handleDateChange = (e: ChangeEvent<HTMLInputElement>) => {
+        let value = e.target.value.replace(/\D/g, '');
+
+        if (value.length > 4) {
+            value = value.slice(0, 4) + '.' + value.slice(4);
+        }
+        if (value.length > 7) {
+            value = value.slice(0, 7) + '.' + value.slice(7, 9);
+        }
+
+        setFormData((prevState) => ({
+            ...prevState,
+            dateOfBirth: value,
+        }));
     };
 
     const handleAgreementChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -39,15 +64,17 @@ export default function SignUpPage() {
         }
     };
 
-    // 폼 제출 시 실행되는 함수
     const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        console.log({ formData, agreements });
-
+        const fullFormData = {
+            ...formData,
+            gender: selectedGender?.id || '',
+            agreements,
+        };
+        console.log(fullFormData);
         setIsModalOpen(true);
     };
 
-    // 'Login' 버튼 클릭 시 실행되는 함수
     const handleLoginRedirect = () => {
         router.push('/login');
     };
@@ -65,26 +92,32 @@ export default function SignUpPage() {
                     style={{ backgroundImage: "url('/images/auth-bg.svg')" }}
                 >
                     <div className="absolute inset-0 bg-black/70" />
-
-                    {/* 회원가입 폼 */}
                     <form
                         onSubmit={handleSubmit}
                         className="relative w-full max-w-xs space-y-4 rounded-2xl bg-[#1B1C21] p-6 text-white"
                     >
-                        {/* 폼 내용은 이전과 동일 */}
                         <div className="text-center">
                             <h1 className="text-lg font-bold tracking-tight">SIGN UP</h1>
                             <p className="mt-1 text-[11px] text-gray-300">Join the pit wall and tune into Fan Radio!</p>
                         </div>
                         <div className="space-y-3">
-                            <input
-                                type="email"
-                                name="email"
-                                placeholder="email"
-                                required
-                                onChange={handleChange}
-                                className="h-11 w-full rounded-xl border border-[#02F5D0] bg-transparent px-4 text-sm text-white placeholder:text-[#444D56] focus:outline-none focus:ring-2 focus:ring-[#02F5D0]/50"
-                            />
+                            {/* 이메일, 비밀번호, 닉네임 입력란 (기존과 동일) */}
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="email"
+                                    name="email"
+                                    placeholder="email"
+                                    required
+                                    onChange={handleChange}
+                                    className="h-11 w-full rounded-xl border border-[#02F5D0] bg-transparent px-4 text-sm text-white placeholder:text-[#444D56] focus:outline-none focus:ring-2 focus:ring-[#02F5D0]/50"
+                                />
+                                <button
+                                    type="button"
+                                    className="h-11 flex-shrink-0 rounded-xl bg-[#02F5D0] px-5 text-xs text-black transition hover:bg-opacity-80"
+                                >
+                                    VERIFY
+                                </button>
+                            </div>
                             <div>
                                 <input
                                     type="password"
@@ -135,36 +168,76 @@ export default function SignUpPage() {
                                     VERIFY
                                 </button>
                             </div>
+
                             <input
                                 type="text"
                                 name="dateOfBirth"
-                                placeholder="Date Of Birth"
-                                onChange={handleChange}
-                                onFocus={(e) => (e.target.type = 'date')}
-                                onBlur={(e) => (e.target.type = 'text')}
+                                placeholder="Date Of Birth (YYYY.MM.DD)"
+                                value={formData.dateOfBirth}
+                                onChange={handleDateChange}
+                                maxLength={10}
                                 className="h-11 w-full rounded-xl border border-[#02F5D0] bg-transparent px-4 text-sm text-white placeholder:text-[#444D56] focus:outline-none focus:ring-2 focus:ring-[#02F5D0]/50"
                             />
-                            <div className="flex h-11 items-center justify-between rounded-xl border border-[#02F5D0] bg-transparent px-4 text-sm text-[#444D56]">
-                                <label className="text-xs">
-                                    Gender <span className="text-[10px]">( Optional )</span>
-                                </label>
-                                <div className="h-2.5 border-r border-[#02F5D0]"></div>
-                                <select
-                                    name="gender"
-                                    onChange={handleChange}
-                                    value={formData.gender}
-                                    className="w-20 appearance-none bg-transparent text-center text-xs text-white focus:outline-none"
-                                >
-                                    <option value="" className="bg-[#1B1C21]"></option>
-                                    <option value="male" className="bg-[#1B1C21]">
-                                        Male
-                                    </option>
-                                    <option value="female" className="bg-[#1B1C21]">
-                                        Female
-                                    </option>
-                                </select>
-                            </div>
+
+                            {/* 성별 드롭다운 */}
+                            <Listbox value={selectedGender} onChange={setSelectedGender}>
+                                <div className="relative h-11">
+                                    <Listbox.Button className="relative h-full w-full cursor-default rounded-xl border border-[#02F5D0] bg-transparent px-4 text-left text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-white/75">
+                                        <span className={selectedGender ? 'text-white' : 'text-[#444D56]'}>
+                                            {selectedGender ? selectedGender.name : 'Gender (Optional)'}
+                                        </span>
+                                        <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
+                                            <svg
+                                                className="h-4 w-4 fill-current text-[#02F5D0]"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                viewBox="0 0 20 20"
+                                            >
+                                                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                                            </svg>
+                                        </span>
+                                    </Listbox.Button>
+                                    <Transition
+                                        as={Fragment}
+                                        leave="transition ease-in duration-100"
+                                        leaveFrom="opacity-100"
+                                        leaveTo="opacity-0"
+                                    >
+                                        <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-xl bg-[#2a2b31] py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm">
+                                            {genderOptions.map((gender) => (
+                                                <Listbox.Option
+                                                    key={gender.id}
+                                                    className={({ active }) =>
+                                                        `relative cursor-default select-none py-2 pl-10 pr-4 ${
+                                                            active ? 'bg-[#02F5D0] text-black' : 'text-white'
+                                                        }`
+                                                    }
+                                                    value={gender}
+                                                >
+                                                    {({ selected }) => (
+                                                        <>
+                                                            <span
+                                                                className={`block truncate ${
+                                                                    selected ? 'font-medium' : 'font-normal'
+                                                                }`}
+                                                            >
+                                                                {gender.name}
+                                                            </span>
+                                                            {selected && (
+                                                                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-black">
+                                                                    ✓
+                                                                </span>
+                                                            )}
+                                                        </>
+                                                    )}
+                                                </Listbox.Option>
+                                            ))}
+                                        </Listbox.Options>
+                                    </Transition>
+                                </div>
+                            </Listbox>
                         </div>
+
+                        {/* 약관 동의 및 회원가입 버튼 */}
                         <div className="space-y-2.5 rounded-2xl border border-[#02F5D0] bg-[#18191B] p-3">
                             <label htmlFor="all" className="flex cursor-pointer items-center space-x-3 text-xs">
                                 <input
@@ -240,13 +313,12 @@ export default function SignUpPage() {
                         </button>
                     </form>
 
-                    {/* 성공 모달 UI */}
+                    {/* 성공 모달 */}
                     {isModalOpen && (
                         <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/60 p-4">
                             <div className="flex w-full max-w-sm flex-col items-center space-y-6 rounded-2xl bg-[#18191B] p-8 text-center text-white">
                                 <div>
-                                    {' '}
-                                    <h2 className="text-xl font-bold mb-2">Registration successful 🎉</h2>
+                                    <h2 className="text-xl font-bold mb-2">Registration successful🎉</h2>
                                     <p className="text-gray-300">Please log in to continue!</p>
                                 </div>
                                 <button

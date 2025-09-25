@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import html2canvas from 'html2canvas';
+import { useRouter } from 'next/navigation';
 
 import { Swiper, SwiperSlide, SwiperRef } from 'swiper/react';
 import 'swiper/css';
@@ -19,19 +20,12 @@ export interface MyPageModalProps {
     messages: Message[];
     initialSlide?: number;
     onClose: () => void;
-    onEdit: (id: number) => void;
+
     onDelete: (id: number) => void;
 }
 
-const MyPageModal = ({
-    isOpen,
-    nickname,
-    messages = [],
-    initialSlide = 0,
-    onClose,
-    onEdit,
-    onDelete,
-}: MyPageModalProps) => {
+const MyPageModal = ({ isOpen, nickname, messages = [], initialSlide = 0, onClose, onDelete }: MyPageModalProps) => {
+    const router = useRouter();
     const [activeIndex, setActiveIndex] = useState(initialSlide);
     const swiperRef = useRef<SwiperRef>(null);
     const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -59,6 +53,19 @@ const MyPageModal = ({
 
     const currentMessage = messages[activeIndex] || messages[0];
 
+    const handleEdit = () => {
+        if (!currentMessage) return;
+
+        // URL 쿼리 파라미터 생성
+        const query = new URLSearchParams({
+            editId: String(currentMessage.id),
+            editText: currentMessage.text,
+        });
+
+        // 쿼리 파라미터와 함께 /fan-radio 페이지로 이동
+        router.push(`/fan-radio?${query.toString()}`);
+    };
+
     return (
         <div className="fixed inset-0 bg-black/70 flex justify-center items-center z-50" onClick={onClose}>
             <div
@@ -70,7 +77,8 @@ const MyPageModal = ({
                         <button onClick={handleDownload}>
                             <Image src="/icons/download.svg" alt="Download" width={28} height={28} />
                         </button>
-                        <button onClick={() => onEdit(currentMessage.id)}>
+
+                        <button onClick={handleEdit}>
                             <Image src="/icons/message-edit.svg" alt="Edit" width={28} height={28} />
                         </button>
                         <button onClick={() => onDelete(currentMessage.id)}>

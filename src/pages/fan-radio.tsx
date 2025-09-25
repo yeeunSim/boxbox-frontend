@@ -18,6 +18,20 @@ const FanRadioPage = () => {
     const [showLeaveModal, setShowLeaveModal] = useState(false);
     const [nextPath, setNextPath] = useState('');
     const confirmedNavigation = useRef(false);
+    // 수정 중인 메시지의 ID를 저장할 state 추가
+    const [editingId, setEditingId] = useState<number | null>(null);
+
+    //  페이지 로드 시 URL 파라미터를 확인하여 수정 모드로 설정
+    useEffect(() => {
+        // router.isReady를 확인하여 쿼리 파라미터가 완전히 로드되었을 때 실행
+        if (router.isReady) {
+            const { editId, editText } = router.query;
+            if (editId && editText) {
+                setMessage(String(editText));
+                setEditingId(Number(editId));
+            }
+        }
+    }, [router.isReady, router.query]);
     //  텍스트 입력 시도 시 로그인 모달을 띄우는 함수
     const handleFocus = () => {
         if (!isLoggedIn) {
@@ -68,7 +82,14 @@ const FanRadioPage = () => {
         setShowLeaveModal(false);
     };
 
-    const handleSend = () => setModalOpen(true);
+    const handleSend = () => {
+        if (!isLoggedIn) {
+            openLoginModal();
+            return;
+        }
+
+        setModalOpen(true);
+    };
 
     return (
         <div className="w-full max-w-md mx-auto px-4 min-h-screen overflow-y-auto pt-[70px] pb-[80px]">
@@ -175,7 +196,8 @@ const FanRadioPage = () => {
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
                         maxLength={500}
-                        readOnly={!isLoggedIn}
+                        readOnly={!isLoggedIn} // 로그인 안되어 있으면 입력 불가
+                        onFocus={handleFocus} // 포커스 시 로그인 체크
                     />
                     <div className="absolute bottom-4 right-4 text-[#444d56] text-[11px] sm:text-xs">
                         {message.length} / 500
@@ -194,7 +216,8 @@ const FanRadioPage = () => {
                         disabled={!isLoggedIn}
                         className="w-full bg-[#02F5D0] text-[#383838] py-3 rounded-[15px] text-[15px] sm:text-base tracking-wide disabled:cursor-not-allowed"
                     >
-                        Send Fan Radio 📻
+                        {/* 수정 모드일 때 버튼 텍스트 변경 */}
+                        {editingId ? 'Update Fan Radio 📻' : 'Send Fan Radio 📻'}
                     </button>
                 </div>
             </div>
@@ -202,16 +225,23 @@ const FanRadioPage = () => {
             {/* 전송 완료 모달 */}
             <Modal
                 isOpen={modalOpen}
-                title="Fan Radio sent"
+                title={editingId ? 'Fan Radio updated' : 'Fan Radio sent'}
                 message="See it in the special frame ✨"
                 primaryText="Show me"
                 secondaryText="Cancel"
                 icon={<span>🚀</span>}
                 onPrimary={() => {
                     setModalOpen(false);
-
                     confirmedNavigation.current = true;
-                    router.push(`/my-page?modal=fan-radio&message=${encodeURIComponent(message)}`);
+                    if (editingId) {
+                        // 수정 완료 후 마이페이지로 이동
+                        console.log(`UPDATING message ID ${editingId} with text: ${message}`);
+                        router.push('/my-page');
+                    } else {
+                        // 새 메시지 작성 후 마이페이지로 이동하며 새 메시지 정보 전달
+                        console.log(`CREATING new message: ${message}`);
+                        router.push(`/my-page?modal=fan-radio&message=${encodeURIComponent(message)}`);
+                    }
                 }}
                 onSecondary={() => setModalOpen(false)}
             />

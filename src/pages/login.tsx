@@ -4,15 +4,61 @@ import { useState, FormEvent } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import Image from 'next/image';
+import Modal from '@/components/Modal';
+
+import { AxiosError } from 'axios';
+import { useRouter } from 'next/router';
+
+import { loginAPI } from '@/apis/loginAPI';
+import { useAuthStore, User } from '../../store/authStore';
+import { fanRadioAPI } from '@/apis/fanradioAPI';
 
 export default function LoginPage() {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+    const router = useRouter();
+
+    const [loginEmail, setEmail] = useState('');
+    const [loginPw, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
 
-    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    type ApiError = { code?: string; message?: string };
+    type LoginRes = { accessToken: string; user: User };
+
+    const [isModalOpen, setModalOpen] = useState(false);
+    const [modalMsg, setModalMsg] = useState<string>('');
+    const [modalTitle, setModalTitle] = useState<string>('Login Failed');
+    const [secondaryText, setSecondaryText] = useState<string | undefined>(undefined);
+    const [onSecondary, setOnSecondary] = useState<(() => void) | undefined>(undefined);
+
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        console.log({ email, password });
+
+        try {
+            const res = await loginAPI.login({ loginEmail, loginPw });
+            const data: LoginRes = res.data;
+            const { accessToken, user } = data;
+
+            useAuthStore.getState().login({ user, accessToken });
+
+            router.replace('/');
+        } catch (e: any) {
+            const ax = e as AxiosError<ApiError>;
+            const code = ax.response?.data?.code;
+            const msg  = ax.response?.data?.message ?? ax.message ?? '로그인 중 오류가 발생했어요.';
+
+            if (code === 'USER_NOT_FOUND' || ax.response?.status === 404) {
+                setModalTitle('Account not found');
+                setModalMsg('해당 이메일로 가입된 계정을 찾을 수 없어요. 회원가입을 진행해 주세요.');
+                setSecondaryText('Go to Sign up');
+                setOnSecondary(() => () => router.push('/sign-up'));
+            } else {
+                setModalTitle('Login Failed');
+                setModalMsg(msg ?? '로그인 중 오류가 발생했어요. 잠시 후 다시 시도해 주세요.');
+                setSecondaryText(undefined);
+                setOnSecondary(undefined);
+            }
+
+            setModalOpen(true);
+        }
     };
 
     return (
@@ -41,7 +87,7 @@ export default function LoginPage() {
                                 type="email"
                                 name="email"
                                 placeholder="Email"
-                                value={email}
+                                value={loginEmail}
                                 required
                                 onChange={(e) => setEmail(e.target.value)}
                                 className="h-12 w-full rounded-xl border border-[#02F5D0] bg-transparent px-4 text-white placeholder:text-gray-500 focus:border-[#02F5D0] focus:outline-none focus:ring-1 focus:ring-[#02F5D0]"
@@ -51,7 +97,7 @@ export default function LoginPage() {
                                     type={showPassword ? 'text' : 'password'}
                                     name="password"
                                     placeholder="Password"
-                                    value={password}
+                                    value={loginPw}
                                     required
                                     onChange={(e) => setPassword(e.target.value)}
                                     className="h-12 w-full rounded-xl border border-[#02F5D0] bg-transparent px-4 text-white placeholder:text-gray-500 focus:border-[#02F5D0] focus:outline-none focus:ring-1 focus:ring-[#02F5D0]"
@@ -93,6 +139,16 @@ export default function LoginPage() {
                     </form>
                 </div>
             </main>
+
+            <Modal
+                isOpen={isModalOpen}
+                title={modalTitle}
+                message={modalMsg}
+                primaryText="OK"
+                onPrimary={() => setModalOpen(false)}
+                secondaryText={secondaryText}
+                onSecondary={onSecondary}
+            />
         </>
     );
 }

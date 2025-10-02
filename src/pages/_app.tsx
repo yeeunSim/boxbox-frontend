@@ -12,7 +12,7 @@ import Modal from '@/components/Modal';
 type NextPageWithLayout = NextPage & {
     title?: string;
     hideLayout?: boolean;
-    rightIconType?: 'globe' | 'logout' | 'none';
+    rightIconType?: 'globe' | 'logout' | 'none' | 'login';
 };
 
 type AppPropsWithLayout = AppProps & {
@@ -20,7 +20,7 @@ type AppPropsWithLayout = AppProps & {
 };
 
 function AppContent({ Component, pageProps }: AppPropsWithLayout) {
-    const { isLoginModalOpen, closeLoginModal } = useAuth();
+    const { isLoggedIn, isLoginModalOpen, closeLoginModal } = useAuth();
     const router = useRouter();
 
     const handleRedirectToLogin = () => {
@@ -30,7 +30,16 @@ function AppContent({ Component, pageProps }: AppPropsWithLayout) {
 
     const getTitle = Component.title ?? 'Default Title';
     const hideLayout = Component.hideLayout ?? false;
-    const rightIcon = Component.rightIconType ?? 'globe';
+
+    const getRightIcon = () => {
+        const isMainPage = router.pathname === '/';
+
+        if (isMainPage && !isLoggedIn) {
+            return 'login';
+        }
+
+        return Component.rightIconType ?? 'globe';
+    };
 
     return (
         <>
@@ -40,7 +49,8 @@ function AppContent({ Component, pageProps }: AppPropsWithLayout) {
                 </div>
             ) : (
                 <div className="relative flex min-h-screen flex-col bg-[#191922] font-formula1 text-white">
-                    <Header title={getTitle} rightIcon={rightIcon} />
+                    {/* 결정된 아이콘 타입을 Header에 전달 */}
+                    <Header title={getTitle} rightIcon={getRightIcon()} />
                     <main className="flex-grow">
                         <Component {...pageProps} />
                     </main>

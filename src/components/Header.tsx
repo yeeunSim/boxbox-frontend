@@ -2,12 +2,13 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import Dropdown from './Dropdown';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface HeaderProps {
     title: string;
-    rightIcon?: 'globe' | 'logout' | 'none';
+    rightIcon?: 'globe' | 'logout' | 'none' | 'login';
 }
 
 const Header = ({ title, rightIcon = 'globe' }: HeaderProps) => {
@@ -27,11 +28,18 @@ const Header = ({ title, rightIcon = 'globe' }: HeaderProps) => {
     };
 
     const renderRightIcon = () => {
+        if (rightIcon === 'login') {
+            return (
+                <Link href="/login">
+                    <Image src="/icons/login.svg" alt="Login" width={30} height={30} />
+                </Link>
+            );
+        }
         if (rightIcon === 'globe') {
             return (
                 <div className="relative">
                     <button onClick={() => setIsLangModalOpen((prev) => !prev)}>
-                        <Image src="/icons/globe-icon.svg" alt="Language" width={30} height={30} />
+                        <Image src="/icons/globe.svg" alt="Language" width={30} height={30} />
                     </button>
                     {isLangModalOpen && (
                         <Dropdown

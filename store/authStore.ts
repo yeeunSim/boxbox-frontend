@@ -28,6 +28,12 @@ type State = {
   isAuthed: () => boolean;
 };
 
+type UiState = {
+  isLoginModalOpen: boolean;
+  openLoginModal: () => void;
+  closeLoginModal: () => void;
+};
+
 /**
  * 보안 원칙:
  * - accessToken은 "메모리"에만 보관(= persist 대상에서 제외)
@@ -66,3 +72,9 @@ export const useAuthStore = create<State>()(
     }
   )
 );
+
+export const useUiStore = create<UiState>((set) => ({
+  isLoginModalOpen: false,
+  openLoginModal: () => set({ isLoginModalOpen: true }),
+  closeLoginModal: () => set({ isLoginModalOpen: false }),
+}));

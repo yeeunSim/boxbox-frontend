@@ -4,10 +4,11 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
 import Modal from '../components/Modal';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuthStore, useUiStore } from '../../store/authStore';
 
 const FanRadioPage = () => {
-    const { isLoggedIn, openLoginModal } = useAuth();
+    const isLoggedIn = useAuthStore((s) => s.isAuthed());
+    const openLoginModal = useUiStore((s) => s.openLoginModal);
 
     const router = useRouter();
     const [message, setMessage] = useState('');

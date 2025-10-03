@@ -7,8 +7,7 @@ import { useRouter } from 'next/router';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 import Modal from '@/components/Modal';
-
-import { useUiStore } from '../../store/authStore';
+import { useAuthStore, useUiStore } from '../../store/authStore';
 
 type NextPageWithLayout = NextPage & {
     title?: string;
@@ -21,8 +20,9 @@ type AppPropsWithLayout = AppProps & {
 };
 
 function AppContent({ Component, pageProps }: AppPropsWithLayout) {
+    const isLoggedIn = useAuthStore((s) => s.isAuthed());
     const isLoginModalOpen = useUiStore((s) => s.isLoginModalOpen);
-    const closeLoginModal  = useUiStore((s) => s.closeLoginModal);
+    const closeLoginModal = useUiStore((s) => s.closeLoginModal);
 
     const router = useRouter();
 
@@ -74,7 +74,5 @@ function AppContent({ Component, pageProps }: AppPropsWithLayout) {
 }
 
 export default function App(props: AppPropsWithLayout) {
-    return (
-        <AppContent {...props} />
-    );
+    return <AppContent {...props} />;
 }

@@ -11,7 +11,7 @@ import { useRouter } from 'next/router';
 
 import { loginAPI } from '@/apis/loginAPI';
 import { useAuthStore, User } from '../../store/authStore';
-import { fanRadioAPI } from '@/apis/fanradioAPI';
+//import { fanRadioAPI } from '@/apis/fanradioAPI';
 
 export default function LoginPage() {
     const router = useRouter();
@@ -40,10 +40,10 @@ export default function LoginPage() {
             useAuthStore.getState().login({ user, accessToken });
 
             router.replace('/');
-        } catch (e: any) {
+        } catch (e: unknown) {
             const ax = e as AxiosError<ApiError>;
             const code = ax.response?.data?.code;
-            const msg  = ax.response?.data?.message ?? ax.message ?? '로그인 중 오류가 발생했어요.';
+            const msg = ax.response?.data?.message ?? ax.message ?? '로그인 중 오류가 발생했어요.';
 
             if (code === 'USER_NOT_FOUND' || ax.response?.status === 404) {
                 setModalTitle('Account not found');

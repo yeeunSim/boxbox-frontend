@@ -1,3 +1,5 @@
+// src/pages/podium.tsx
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -5,6 +7,7 @@ import Image from 'next/image';
 import Dropdown from '@/components/Dropdown';
 import PodiumModal from '@/components/PodiumModal';
 import { useAuthStore, useUiStore } from '../../store/authStore';
+import { podiumAPI, PodiumItem } from '@/apis/podiumAPI';
 
 interface User {
     id: number;
@@ -14,83 +17,109 @@ interface User {
     isLiked: boolean;
 }
 
-const dummyData: User[] = [
-    { id: 1, nickname: 'JHKIM', likes: 726, message: 'Go get it, Valtteri! 🚀', isLiked: false },
-    { id: 2, nickname: 'JAMES', likes: 276, message: 'Go get it, Valtteri! 🚀', isLiked: true },
-    { id: 3, nickname: 'SLIVER ARROWS', likes: 163, message: 'Go get it, Valtteri! 🚀', isLiked: false },
-    { id: 4, nickname: 'LEWIS', likes: 98, message: 'Go get it, Valtteri! 🚀', isLiked: false },
-    { id: 5, nickname: 'MAX', likes: 87, message: 'Go get it, Valtteri! 🚀', isLiked: false },
-    { id: 6, nickname: 'SEBASTIAN', likes: 54, message: 'Go get it, Valtteri! 🚀', isLiked: false },
-    { id: 7, nickname: 'CHARLES', likes: 32, message: 'Go get it, Valtteri! 🚀', isLiked: false },
-    { id: 8, nickname: 'GEORGE', likes: 21, message: 'Go get it, Valtteri! 🚀', isLiked: false },
-    { id: 9, nickname: 'LANDO', likes: 19, message: 'Go get it, Valtteri! 🚀', isLiked: false },
-    { id: 10, nickname: 'VALTTERI', likes: 7, message: 'Go get it, Valtteri! 🚀', isLiked: false },
-    { id: 11, nickname: 'PIERRE', likes: 4, message: 'Go get it, Valtteri! 🚀', isLiked: false },
-    { id: 12, nickname: 'KIMI', likes: 2, message: 'Go get it, Valtteri! 🚀', isLiked: false },
-    { id: 13, nickname: 'MICK', likes: 1, message: 'Go get it, Valtteri! 🚀', isLiked: false },
-    { id: 14, nickname: 'NICO', likes: 0, message: 'Go get it, Valtteri! 🚀', isLiked: false },
-];
-
 const PodiumPage = () => {
     const isLoggedIn = useAuthStore((s) => s.isAuthed());
     const openLoginModal = useUiStore((s) => s.openLoginModal);
-
-    const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const [isModalLoading, setIsModalLoading] = useState(false);
     const [filterType, setFilterType] = useState<'popular' | 'latest'>('popular');
-    const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const [selectedUser, setSelectedUser] = useState<User | null>(null);
+
     const [displayedUsers, setDisplayedUsers] = useState<User[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const debounceTimer = setTimeout(() => {
+            const fetchData = async () => {
+                setIsLoading(true);
+                setError(null);
+
+                const sortOption = filterType === 'popular' ? 'POPULAR' : 'LATEST';
+                let dataFromApi: PodiumItem[];
+
+                if (searchTerm.trim() !== '') {
+                    dataFromApi = await podiumAPI.searchPodiumList(searchTerm, 0, sortOption);
+                } else {
+                    dataFromApi = await podiumAPI.getPodiumList(0, sortOption);
+                }
+
+                const formattedUsers: User[] = dataFromApi.map((item) => ({
+                    id: item.radioSn,
+                    nickname: item.writerNickname,
+                    likes: item.likeCount,
+                    message: item.previewEng,
+                    isLiked: false,
+                }));
+                setDisplayedUsers(formattedUsers);
+
+                setIsLoading(false);
+            };
+
+            fetchData();
+        }, 300);
+
+        return () => clearTimeout(debounceTimer);
+    }, [searchTerm, filterType]);
 
     const popularRanks = useMemo(() => {
-        const sortedByLikes = [...dummyData].sort((a, b) => b.likes - a.likes);
         const rankMap = new Map<number, number>();
-        sortedByLikes.forEach((user, index) => {
+        displayedUsers.forEach((user, index) => {
             rankMap.set(user.id, index);
         });
         return rankMap;
-    }, []);
+    }, [displayedUsers]);
 
-    useEffect(() => {
-        let result = [...dummyData];
-
-        if (searchTerm.trim() !== '') {
-            result = result.filter((user) => user.nickname.toLowerCase().includes(searchTerm.toLowerCase()));
-        }
-
-        if (filterType === 'popular') {
-            result.sort((a, b) => b.likes - a.likes);
-        } else {
-            result.sort((a, b) => b.id - a.id);
-        }
-
-        setDisplayedUsers(result);
-    }, [searchTerm, filterType]);
-
-    const handleLike = (id: number) => {
+    const handleLike = async (id: number) => {
         if (!isLoggedIn) {
             openLoginModal();
             return;
         }
+        const success = await podiumAPI.likePodiumPost(id);
 
-        // 로그인이 되어 있다면, 기존 로직을 실행
-        setDisplayedUsers((currentUsers) =>
-            currentUsers.map((user) => {
-                if (user.id === id) {
-                    const newIsLiked = !user.isLiked;
-                    const newLikes = newIsLiked ? user.likes + 1 : user.likes - 1;
-                    return { ...user, isLiked: newIsLiked, likes: newLikes };
-                }
-                return user;
-            })
-        );
-        if (selectedUser && selectedUser.id === id) {
-            setSelectedUser((prev) => {
-                if (!prev) return null;
-                const newIsLiked = !prev.isLiked;
-                const newLikes = newIsLiked ? prev.likes + 1 : prev.likes - 1;
-                return { ...prev, isLiked: newIsLiked, likes: newLikes };
-            });
+        if (success) {
+            const updateUserState = (users: User[]) =>
+                users.map((user) => {
+                    if (user.id === id) {
+                        const newIsLiked = !user.isLiked;
+                        const newLikes = newIsLiked ? user.likes + 1 : user.likes - 1;
+                        return { ...user, isLiked: newIsLiked, likes: newLikes };
+                    }
+                    return user;
+                });
+            setDisplayedUsers(updateUserState);
+
+            if (selectedUser?.id === id) {
+                setSelectedUser((prev) =>
+                    prev ? { ...prev, isLiked: !prev.isLiked, likes: prev.likes + (prev.isLiked ? -1 : 1) } : null
+                );
+            }
+        } else {
+            alert('좋아요 처리에 실패했습니다.');
         }
+    };
+    /*목록 아이템 클릭 시 실행될 새로운 함수 */
+    const handleItemClick = async (userFromList: User) => {
+        setSelectedUser(userFromList);
+        setIsModalLoading(true);
+
+        const detailData = await podiumAPI.getPodiumDetail(userFromList.id);
+
+        if (detailData) {
+            const detailedUser: User = {
+                ...userFromList,
+                id: detailData.radioSn, // id
+                nickname: detailData.writerNickname, // 닉네임
+                message: detailData.radioTextEng, // 메시지 (상세 내용으로 교체)
+            };
+            setSelectedUser(detailedUser);
+        } else {
+            alert('상세 정보를 불러오는 데 실패했습니다.');
+            setSelectedUser(null);
+        }
+
+        setIsModalLoading(false);
     };
 
     const filterOptions = [
@@ -98,9 +127,12 @@ const PodiumPage = () => {
         { value: 'latest', label: 'Latest' },
     ] as const;
 
+    if (isLoading) return <div className="flex justify-center items-center h-screen text-white">Loading...</div>;
+    if (error) return <div className="flex justify-center items-center h-screen text-red-500">Error: {error}</div>;
+
     return (
         <div className="w-full max-w-md mx-auto flex flex-col flex-1">
-            {/* 검색 + 필터 */}
+            {/* 검색 + 필터  */}
             <div className="sticky top-[66px] sm:top-[72px] px-4 py-3 flex items-center gap-3 bg-[#191922] z-20">
                 <input
                     type="text"
@@ -150,7 +182,7 @@ const PodiumPage = () => {
                             return (
                                 <li
                                     key={user.id}
-                                    onClick={() => setSelectedUser(user)}
+                                    onClick={() => handleItemClick(user)}
                                     className={`cursor-pointer rounded-lg px-4 py-3 flex items-center justify-between ${
                                         rank === 0
                                             ? 'border-[2px] border-[#FDE56D] bg-[#22202A]'
@@ -190,8 +222,10 @@ const PodiumPage = () => {
                 </div>
             </div>
 
+            {/* 모달 */}
             <PodiumModal
                 isOpen={!!selectedUser}
+                isLoading={isModalLoading}
                 nickname={selectedUser?.nickname || ''}
                 message={
                     selectedUser

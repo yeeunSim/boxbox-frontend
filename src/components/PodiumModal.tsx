@@ -16,6 +16,7 @@ export interface PodiumModalProps {
     message: Message | null;
     onClose: () => void;
     onLike: (id: number) => void;
+    isLoading?: boolean;
 }
 
 const PodiumModal = ({ isOpen, nickname, message, onClose, onLike }: PodiumModalProps) => {

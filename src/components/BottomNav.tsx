@@ -3,7 +3,7 @@
 import { useRouter } from 'next/router';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useAuth } from '@/contexts/AuthContext'; // 1. useAuth 훅 import
+import { useAuthStore, useUiStore } from '../../store/authStore';
 
 const navItems = [
     { href: '/', iconName: 'home', alt: 'Home' },
@@ -14,8 +14,8 @@ const navItems = [
 
 const BottomNav = () => {
     const router = useRouter();
-    // 2. AuthContext에서 필요한 기능 가져오기
-    const { isLoggedIn, openLoginModal } = useAuth();
+    const isLoggedIn = useAuthStore((s) => s.isAuthed());
+    const openLoginModal = useUiStore((s) => s.openLoginModal);
 
     // 3. 'My Page' 아이콘 클릭 시 실행될 함수
     const handleMyPageClick = () => {

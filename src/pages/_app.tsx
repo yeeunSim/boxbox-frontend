@@ -6,8 +6,9 @@ import type { NextPage } from 'next';
 import { useRouter } from 'next/router';
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
-import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import Modal from '@/components/Modal';
+
+import { useUiStore } from '../../store/authStore';
 
 type NextPageWithLayout = NextPage & {
     title?: string;
@@ -20,7 +21,9 @@ type AppPropsWithLayout = AppProps & {
 };
 
 function AppContent({ Component, pageProps }: AppPropsWithLayout) {
-    const { isLoginModalOpen, closeLoginModal } = useAuth();
+    const isLoginModalOpen = useUiStore((s) => s.isLoginModalOpen);
+    const closeLoginModal  = useUiStore((s) => s.closeLoginModal);
+
     const router = useRouter();
 
     const handleRedirectToLogin = () => {
@@ -62,8 +65,6 @@ function AppContent({ Component, pageProps }: AppPropsWithLayout) {
 
 export default function App(props: AppPropsWithLayout) {
     return (
-        <AuthProvider>
-            <AppContent {...props} />
-        </AuthProvider>
+        <AppContent {...props} />
     );
 }

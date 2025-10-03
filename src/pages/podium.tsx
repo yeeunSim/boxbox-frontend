@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import Dropdown from '@/components/Dropdown';
 import PodiumModal from '@/components/PodiumModal';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuthStore, useUiStore } from '../../store/authStore';
 
 interface User {
     id: number;
@@ -32,7 +32,8 @@ const dummyData: User[] = [
 ];
 
 const PodiumPage = () => {
-    const { isLoggedIn, openLoginModal } = useAuth();
+    const isLoggedIn = useAuthStore((s) => s.isAuthed());
+    const openLoginModal = useUiStore((s) => s.openLoginModal);
 
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [filterType, setFilterType] = useState<'popular' | 'latest'>('popular');

@@ -4,6 +4,7 @@ import { useState, FormEvent, ChangeEvent, Fragment } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { Listbox, Transition } from '@headlessui/react';
+import Link from 'next/link';
 
 const genderOptions = [
     { id: 'male', name: 'Male' },
@@ -96,6 +97,25 @@ export default function SignUpPage() {
                         onSubmit={handleSubmit}
                         className="relative w-full max-w-xs space-y-4 rounded-2xl bg-[#1B1C21] p-6 text-white"
                     >
+                        <Link href="/" passHref>
+                            <button
+                                type="button"
+                                aria-label="Close"
+                                className="absolute right-4 top-4 text-gray-400 transition-colors hover:text-white"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-6 w-6"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth={2}
+                                >
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </Link>
+
                         <div className="text-center">
                             <h1 className="text-lg font-bold tracking-tight">SIGN UP</h1>
                             <p className="mt-1 text-[11px] text-gray-300">Join the pit wall and tune into Fan Radio!</p>

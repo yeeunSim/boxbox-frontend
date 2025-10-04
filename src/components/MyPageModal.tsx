@@ -56,13 +56,11 @@ const MyPageModal = ({ isOpen, nickname, messages = [], initialSlide = 0, onClos
     const handleEdit = () => {
         if (!currentMessage) return;
 
-        // URL 쿼리 파라미터 생성
         const query = new URLSearchParams({
             editId: String(currentMessage.id),
             editText: currentMessage.text,
         });
 
-        // 쿼리 파라미터와 함께 /fan-radio 페이지로 이동
         router.push(`/fan-radio?${query.toString()}`);
     };
 

@@ -6,7 +6,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 /** 유저/토큰 타입 */
 export type User = {
     email: string;
-    nickname?: string;
+    userNickname?: string;
     gender?: number;
 };
 

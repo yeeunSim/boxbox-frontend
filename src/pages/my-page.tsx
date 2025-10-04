@@ -9,20 +9,49 @@ import BottomNav from '@/components/BottomNav';
 import MyPageModal from '@/components/MyPageModal';
 import Modal from '@/components/Modal';
 
+import { myPageAPI } from '@/apis/myPageAPI';
+import { useAuthStore } from '../../store/authStore';
+
+interface FanMessage {
+    id: number;
+    number: string;
+    text: string;
+}
+
 const MyPage = () => {
     const router = useRouter();
     const { modal } = router.query;
+    const currentUser = useAuthStore((state) => state.user);
 
     const [isFanRadioModalOpen, setIsFanRadioModalOpen] = useState(false);
     const [character, setCharacter] = useState<'female' | 'male'>('female');
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [deletingMessageId, setDeletingMessageId] = useState<number | null>(null);
 
-    const [fanMessages, setFanMessages] = useState([
-        { id: 1, number: '#01', text: '첫 번째 팬라디오 메시지입니다.' },
-        { id: 2, number: '#02', text: '두 번째 메시지입니다.' },
-        { id: 3, number: '#03', text: '세 번째 메시지입니다.' },
-    ]);
+    const [myMessages, setMyMessages] = useState<FanMessage[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchMyRadioList = async () => {
+            setIsLoading(true);
+            const dataFromApi = await myPageAPI.getMyRadioList();
+
+            if (dataFromApi) {
+                const formattedMessages: FanMessage[] = dataFromApi.map((item) => ({
+                    id: item.radioSn,
+                    number: `#${String(item.radioSn).padStart(2, '0')}`,
+                    text: item.radioTextEng,
+                }));
+                setMyMessages(formattedMessages);
+            } else {
+                setError('내가 쓴 라디오 목록을 불러오는 데 실패했습니다.');
+            }
+            setIsLoading(false);
+        };
+
+        fetchMyRadioList();
+    }, []);
 
     useEffect(() => {
         if (modal === 'fan-radio') {
@@ -34,15 +63,31 @@ const MyPage = () => {
         setDeletingMessageId(id);
         setIsDeleteModalOpen(true);
     };
-
-    const handleConfirmDelete = () => {
+    const handleConfirmDelete = async () => {
         if (deletingMessageId === null) return;
 
-        setFanMessages((currentMessages) => currentMessages.filter((message) => message.id !== deletingMessageId));
+        const success = await myPageAPI.deleteMyRadio(deletingMessageId);
+
+        if (success) {
+            setMyMessages((currentMessages) => currentMessages.filter((message) => message.id !== deletingMessageId));
+            console.log(`${deletingMessageId}번 메시지가 성공적으로 삭제되었습니다.`);
+        } else {
+            alert('메시지 삭제에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+        }
 
         setIsDeleteModalOpen(false);
         setDeletingMessageId(null);
     };
+
+    //  로딩 중
+    if (isLoading) {
+        return <div className="min-h-screen bg-[#191922] text-white flex justify-center items-center">Loading...</div>;
+    }
+
+    // 에러 메시지
+    if (error) {
+        return <div className="min-h-screen bg-[#191922] text-red-500 flex justify-center items-center">{error}</div>;
+    }
 
     return (
         <div className="min-h-screen bg-[#191922]">
@@ -62,7 +107,7 @@ const MyPage = () => {
                                 className="mb-4"
                             />
                         </button>
-                        <h2 className="font-bold text-3xl text-[#02F5D0]">GAMJA</h2>
+                        <h2 className="font-bold text-3xl text-[#02F5D0]">{currentUser?.userNickname || 'User'}</h2>
                     </main>
                     <button
                         onClick={() => setIsFanRadioModalOpen(true)}
@@ -77,8 +122,8 @@ const MyPage = () => {
 
             <MyPageModal
                 isOpen={isFanRadioModalOpen}
-                nickname="GAMJA"
-                messages={fanMessages}
+                nickname={currentUser?.userNickname || 'User'}
+                messages={myMessages}
                 onClose={() => {
                     setIsFanRadioModalOpen(false);
                     router.replace('/my-page', undefined, { shallow: true });

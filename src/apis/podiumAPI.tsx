@@ -11,6 +11,7 @@ export interface PodiumItem {
     previewEng: string;
     likeCount: number;
     createdAt: string;
+    likeYn: boolean;
 }
 
 /*목록 조회 API의 응답 타입 */
@@ -28,6 +29,7 @@ export interface PodiumDetailItem {
     radioTextKor: string;
     radioTextEng: string;
     writerNickname: string;
+    likeYn: boolean;
 }
 
 const getPodiumList = async (page: number, sort: 'POPULAR' | 'LATEST') => {
@@ -56,7 +58,7 @@ const searchPodiumList = async (nickname: string, page: number, sort: 'POPULAR' 
 
 const getPodiumDetail = async (radioSn: number) => {
     try {
-        const response = await api.get<PodiumDetailItem>(`radio/podium/radio/${radioSn}`);
+        const response = await api.get<PodiumDetailItem>(`/radio/podium/${radioSn}`);
 
         return response.data;
     } catch (error) {

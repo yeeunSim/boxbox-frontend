@@ -50,7 +50,7 @@ const PodiumPage = () => {
                     nickname: item.writerNickname,
                     likes: item.likeCount,
                     message: item.previewEng,
-                    isLiked: false,
+                    isLiked: item.likeYn,
                 }));
                 setDisplayedUsers(formattedUsers);
 
@@ -112,6 +112,7 @@ const PodiumPage = () => {
                 id: detailData.radioSn, // id
                 nickname: detailData.writerNickname, // 닉네임
                 message: detailData.radioTextEng, // 메시지 (상세 내용으로 교체)
+                isLiked: detailData.likeYn,
             };
             setSelectedUser(detailedUser);
         } else {

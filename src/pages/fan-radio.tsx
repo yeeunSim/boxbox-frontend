@@ -6,6 +6,11 @@ import Image from 'next/image';
 import Modal from '../components/Modal';
 import { useAuthStore, useUiStore } from '../../store/authStore';
 
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Pagination } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/pagination';
+
 const FanRadioPage = () => {
     const isLoggedIn = useAuthStore((s) => s.isAuthed());
     const openLoginModal = useUiStore((s) => s.openLoginModal);
@@ -13,7 +18,6 @@ const FanRadioPage = () => {
     const router = useRouter();
     const [message, setMessage] = useState('');
     const [language, setLanguage] = useState<'ko' | 'en'>('ko');
-    const [currentBanner, setCurrentBanner] = useState(0);
     const [modalOpen, setModalOpen] = useState(false);
 
     const [showLeaveModal, setShowLeaveModal] = useState(false);
@@ -41,20 +45,12 @@ const FanRadioPage = () => {
     };
 
     const banners = [
-        `“TYPE YOUR WELCOME NOTE HERE 💌\nCOULD BE THE ONE BOTTAS ACTUALLY READS 👀”`,
-        `“SEND A MESSAGE TO YOUR FAVORITE DRIVER 💬\nAND WE’LL MAKE SURE IT HITS THE PIT WALL 🛠️”`,
+        `“TYPE YOUR WELCOME NOTE HERE 💌COULD BE THE ONE BOTTAS ACTUALLY READS 👀”`,
+        `“SEND A MESSAGE TO YOUR FAVORITE DRIVER 💬AND WE’LL MAKE SURE IT HITS THE PIT WALL 🛠️”`,
         `“REV UP YOUR PASSION 🚗💨\nF1 FANS UNITE WITH YOUR WORDS”`,
-        `“FEELING FAST?\nDROP A NOTE BEFORE THE NEXT LAP 🏁”`,
-        `“YOUR WORDS, THEIR EARS 🎧\nSEND LOVE TO THE TRACKSIDE”`,
+        `“FEELING FAST?DROP A NOTE BEFORE THE NEXT LAP 🏁”`,
+        `“YOUR WORDS, THEIR EARS 🎧SEND LOVE TO THE TRACKSIDE”`,
     ];
-
-    /* 배너 자동 전환 */
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setCurrentBanner((prev) => (prev + 1) % banners.length);
-        }, 3000);
-        return () => clearInterval(interval);
-    }, [banners.length]);
 
     /* 페이지 이탈 방지 로직 */
     useEffect(() => {
@@ -94,9 +90,22 @@ const FanRadioPage = () => {
 
     return (
         <div className="w-full max-w-md mx-auto px-4 min-h-screen overflow-y-auto pt-[70px] pb-[80px]">
+            <style jsx global>{`
+                .fan-radio-pagination .swiper-pagination-bullet {
+                    width: 5px;
+                    height: 5px;
+                    background-color: rgba(0, 210, 202, 0.5); /* #00D2CA with 50% opacity */
+                    border-radius: 50%;
+                    opacity: 1;
+                    transition: background-color 0.3s;
+                }
+                .fan-radio-pagination .swiper-pagination-bullet-active {
+                    background-color: #02f5d0;
+                }
+            `}</style>
+
             {/* 메인 이미지 + 배너 묶음 */}
-            <div className="rounded-xl overflow-hidden">
-                {/* 메인 이미지 */}
+            <div className="rounded-xl overflow-hidden shadow-lg">
                 <Image
                     src="/images/fan-radio.svg"
                     alt="Main Fan"
@@ -105,36 +114,37 @@ const FanRadioPage = () => {
                     className="w-full h-auto object-contain"
                 />
 
-                {/* 배너 */}
-                <div className="overflow-hidden relative w-full h-[100px] sm:h-[120px] md:h-[140px]">
-                    <div
-                        className="flex transition-transform duration-500 ease-in-out"
-                        style={{ transform: `translateX(-${currentBanner * 100}%)` }}
+                {/*  배너 */}
+                <div className="relative">
+                    <Swiper
+                        modules={[Pagination]}
+                        spaceBetween={0}
+                        slidesPerView={1}
+                        loop={true}
+                        pagination={{
+                            clickable: true,
+                            el: '.fan-radio-pagination',
+                        }}
+                        className="w-full"
                     >
                         {banners.map((text, idx) => (
-                            <div
-                                key={idx}
-                                className="min-w-full flex flex-col justify-between px-4 py-3 text-center text-[#383838]"
-                                style={{
-                                    background: 'linear-gradient(90deg, #00CCAD 0%, #003B39 100%)',
-                                }}
-                            >
-                                <div className="flex-1 flex items-center justify-center whitespace-pre-wrap break-words text-xs sm:text-sm">
-                                    {text}
+                            <SwiperSlide key={idx}>
+                                <div
+                                    className="min-w-full h-[100px] sm:h-[120px] flex flex-col justify-center items-center px-4 py-3 text-center text-[#383838]"
+                                    style={{
+                                        background:
+                                            'linear-gradient(90deg, #00DDBC 0%, #009A94 35%, #009A94 49.52%, #009A94 65%, #00DDBC 100%)',
+                                    }}
+                                >
+                                    <div className="flex-1 flex items-center justify-center whitespace-pre-wrap break-words text-xs sm:text-sm text-[#02F5D0] ">
+                                        {text}
+                                    </div>
                                 </div>
-                                <div className="mt-2 flex justify-center items-center gap-1">
-                                    {banners.map((_, i) => (
-                                        <div
-                                            key={i}
-                                            className={`w-1.5 h-1.5 sm:w-2 sm:h-2 ${
-                                                i === currentBanner ? 'bg-[#02F5D0]' : 'bg-[#00A19B80]'
-                                            } rounded-sm`}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
+                            </SwiperSlide>
                         ))}
-                    </div>
+                    </Swiper>
+
+                    <div className="fan-radio-pagination absolute bottom-3 left-0 right-0 z-10 flex justify-center items-center gap-1.5" />
                 </div>
             </div>
 

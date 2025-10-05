@@ -4,6 +4,8 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Dropdown from './Dropdown';
+import { useAuthStore } from '../../store/authStore';
+import { loginAPI } from '@/apis/loginAPI';
 
 interface HeaderProps {
     title: string;
@@ -14,14 +16,18 @@ const Header = ({ title, rightIcon = 'globe' }: HeaderProps) => {
     const logout = () => {}
 
     const [isLangModalOpen, setIsLangModalOpen] = useState(false);
-    const [currentLang, setCurrentLang] = useState<'en' | 'ko'>('en');
+    const [currentLang, setCurrentLang] = useState<'en' | 'ko'>(useAuthStore.getState().lang);
+    
 
     const languageOptions = [
         { value: 'en', label: 'English' },
         { value: 'ko', label: 'Korean' },
     ] as const;
 
-    const handleLanguageSelect = (lang: 'en' | 'ko') => {
+     const handleLanguageSelect = async (lang: 'en' | 'ko') => {
+        useAuthStore.getState().setLang(lang);
+        await loginAPI.setLanguagePreference(lang);
+
         setCurrentLang(lang);
         setIsLangModalOpen(false);
     };

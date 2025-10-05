@@ -193,32 +193,39 @@ const PodiumPage = () => {
                                 <li
                                     key={user.id}
                                     onClick={() => handleItemClick(user)}
-                                    className={`cursor-pointer rounded-lg px-4 py-3 flex items-center justify-between ${
-                                        rank === 0
-                                            ? 'border-[2px] border-[#FDE56D] bg-[#22202A]'
-                                            : rank === 1
-                                            ? 'border-[2px] border-[#AEB7C2] bg-[#22202A]'
-                                            : rank === 2
-                                            ? 'border-[2px] border-[#886050] bg-[#22202A]'
-                                            : (idx + 1) % 3 === 2
-                                            ? 'bg-[#2A2833]'
-                                            : 'bg-[#22202A]'
-                                    }`}
+                                    className={`
+                                        cursor-pointer rounded-lg px-4 py-3 flex items-center justify-between
+                                        bg-[#22202A] 
+                                        hover:bg-[#2A2833]      /* 데스크탑 호버 효과 */
+                                        active:bg-[#2A2833]      /* 모바일 탭 효과 (색상) */
+                                        active:scale-[0.98]      /* 모바일 탭 효과 (크기) */
+                                        transition-all duration-150
+                                        ${rank === 0 ? 'border-2 border-[#FDE56D]' : ''}
+                                        ${rank === 1 ? 'border-2 border-[#AEB7C2]' : ''}
+                                        ${rank === 2 ? 'border-2 border-[#886050]' : ''}
+                                    `}
                                 >
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex flex-1 items-center gap-3 min-w-0">
                                         {rank !== undefined && rank < 3 ? (
                                             <Image
                                                 src={`/icons/trophy-${rank + 1}.svg`}
                                                 alt={`Trophy ${rank + 1}`}
                                                 width={20}
                                                 height={20}
+                                                className="flex-shrink-0"
                                             />
                                         ) : (
-                                            <span className="w-6 text-center font-bold">{idx + 1}</span>
+                                            <span className="w-6 text-center font-bold text-white flex-shrink-0">
+                                                {idx + 1}
+                                            </span>
                                         )}
-                                        <div className="flex flex-col">
-                                            <span className="font-bold">{user.nickname}</span>
-                                            <span className="text-xs text-gray-300">“{user.message}”</span>
+
+                                        <div className="flex flex-col flex-1 min-w-0">
+                                            <span className="font-bold text-white truncate">{user.nickname}</span>
+
+                                            <span className="block text-xs text-gray-300 truncate">
+                                                “{user.message}”
+                                            </span>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-1">

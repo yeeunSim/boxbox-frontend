@@ -6,6 +6,7 @@ import { useRouter } from 'next/router';
 import Image from 'next/image';
 import Modal from '../components/Modal';
 import { useAuthStore, useUiStore } from '../../store/authStore';
+import { AxiosError } from 'axios';
 
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination } from 'swiper/modules';
@@ -25,6 +26,7 @@ const FanRadioPage = () => {
     const [message, setMessage] = useState('');
     const [language, setLanguage] = useState<'ko' | 'en'>('ko');
     const [modalOpen, setModalOpen] = useState(false);
+    const [isLimitModalOpen, setLimitModalOpen] = useState(false);
 
     const [showLeaveModal, setShowLeaveModal] = useState(false);
     const [nextPath, setNextPath] = useState('');
@@ -144,9 +146,14 @@ const FanRadioPage = () => {
             // 성공적으로 생성/수정되면 모달 오픈 & 응답 저장
             setCreatedRadio(res.data);
             setModalOpen(true);
-        } catch (e) {
-            console.error('Fan Radio 전송 실패', e);
-            alert('요청 처리에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+        } catch (e: any) {
+            const error = e as AxiosError;
+            if (error.response?.status === 409) {
+                setLimitModalOpen(true);
+            } else {
+                console.error('Fan Radio 전송 실패', e);
+                alert('요청 처리에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+            }
         } finally {
             setIsSubmitting(false);
         }
@@ -200,7 +207,6 @@ const FanRadioPage = () => {
                                             'linear-gradient(90deg, #00DDBC 0%, #009A94 35%, #009A94 49.52%, #009A94 65%, #00DDBC 100%)',
                                     }}
                                 >
-                                    {/* ✅ 텍스트 색상을 디자인에 맞게 수정했습니다. */}
                                     <div className="flex-1 flex items-center justify-center whitespace-pre-wrap break-words text-xs sm:text-sm text-[#02F5D0]">
                                         {text}
                                     </div>
@@ -310,11 +316,15 @@ const FanRadioPage = () => {
                 icon={<span>🚀</span>}
                 onPrimary={() => {
                     setModalOpen(false);
+                    setMessage('');
                     confirmedNavigation.current = true;
                     const msg = createdRadio?.radioTextEng ?? message;
                     router.push(`/my-page?modal=fan-radio&message=${encodeURIComponent(msg)}`);
                 }}
-                onSecondary={() => setModalOpen(false)}
+                onSecondary={() => {
+                    setModalOpen(false);
+                    setMessage('');
+                }}
             />
 
             {/* 이탈 확인 모달 */}
@@ -326,6 +336,13 @@ const FanRadioPage = () => {
                 secondaryText="Stay"
                 onPrimary={handleConfirmLeave}
                 onSecondary={handleCancelLeave}
+            />
+            <Modal
+                isOpen={isLimitModalOpen}
+                title="Message Limit Reached"
+                message={'Post limit reached (3/3). \n Please edit or delete an existing message.'}
+                primaryText="OK"
+                onPrimary={() => setLimitModalOpen(false)}
             />
         </div>
     );

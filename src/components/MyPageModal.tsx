@@ -162,7 +162,7 @@ const MyPageModal = ({ isOpen, nickname, messages = [], initialSlide = 0, onClos
                     // --- 2. 메시지가 없을 경우: 새로운 안내 UI ---
                     <div className="bg-[#191922] border-2 border-[#02F5D0] rounded-xl mx-auto flex flex-col items-center justify-center gap-6 p-8 min-h-[300px]">
                         <Image src="/icons/radio-btn.svg" alt="No messages" width={64} height={64} />
-                        <p className="text-lg  text-center">You haven't written any messages yet.</p>
+                        <p className="text-lg  text-center">{"You haven't written any messages yet."}</p>
                         <button
                             onClick={() => router.push('/fan-radio')}
                             className="bg-[#02F5D0] text-black font-bold py-3 px-6 rounded-lg transition hover:bg-opacity-80"

@@ -193,8 +193,10 @@ const handleNicknameVerify = async () => {
       setSubmitting(true);
       await signUpAPI.register(payload);
       setIsModalOpen(true);
-    } catch (err: any) {
-      const msg = err?.response?.data?.message || '회원가입 중 오류가 발생했어요. 잠시 후 다시 시도해 주세요.';
+    // 수정
+    } catch (err) {
+      const axiosErr = err as AxiosError<ApiErrorBody>;
+      const msg = axiosErr.response?.data?.message ?? axiosErr.message ?? '회원가입 중 오류가 발생했어요. 잠시 후 다시 시도해 주세요.';
       alert(msg);
     } finally {
       setSubmitting(false);

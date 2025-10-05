@@ -18,6 +18,7 @@ interface User {
 }
 
 const PodiumPage = () => {
+    const lang = useAuthStore((state) => state.lang);
     const isLoggedIn = useAuthStore((s) => s.isAuthed());
     const openLoginModal = useUiStore((s) => s.openLoginModal);
     const [isModalLoading, setIsModalLoading] = useState(false);
@@ -49,16 +50,15 @@ const PodiumPage = () => {
                 id: item.radioSn,
                 nickname: item.writerNickname,
                 likes: item.likeCount,
-                message: item.previewEng,
+
+                message: lang === 'ko' ? item.previewKor : item.previewEng,
                 isLiked: item.likeYn,
             }));
             setDisplayedUsers(formattedUsers);
-
             setIsLoading(false);
         };
-
         fetchData();
-    }, [searchTerm, filterType]);
+    }, [searchTerm, filterType, lang]);
 
     const popularRanks = useMemo(() => {
         const rankMap = new Map<number, number>();
@@ -108,7 +108,7 @@ const PodiumPage = () => {
                 ...userFromList,
                 id: detailData.radioSn, // id
                 nickname: detailData.writerNickname, // 닉네임
-                message: detailData.radioTextEng, // 메시지 (상세 내용으로 교체)
+                message: lang === 'ko' ? detailData.radioTextKor : detailData.radioTextEng,
                 isLiked: detailData.likeYn,
             };
             setSelectedUser(detailedUser);

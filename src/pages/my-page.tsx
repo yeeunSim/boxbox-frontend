@@ -21,6 +21,7 @@ interface FanMessage {
 const MyPage = () => {
     const router = useRouter();
     const { modal } = router.query;
+    const lang = useAuthStore((state) => state.lang);
     const currentUser = useAuthStore((state) => state.user);
 
     const [isFanRadioModalOpen, setIsFanRadioModalOpen] = useState(false);
@@ -41,17 +42,15 @@ const MyPage = () => {
                 const formattedMessages: FanMessage[] = dataFromApi.map((item) => ({
                     id: item.radioSn,
                     number: `#${String(item.radioSn).padStart(2, '0')}`,
-                    text: item.radioTextEng,
+                    text: lang === 'ko' ? item.radioTextEng : item.radioTextKor, //백 오류
                 }));
                 setMyMessages(formattedMessages);
-            } else {
-                setError('내가 쓴 라디오 목록을 불러오는 데 실패했습니다.');
             }
+            // ...
             setIsLoading(false);
         };
-
         fetchMyRadioList();
-    }, []);
+    }, [lang]);
 
     useEffect(() => {
         if (modal === 'fan-radio') {

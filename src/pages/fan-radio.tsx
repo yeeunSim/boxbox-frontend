@@ -12,17 +12,16 @@ import { Pagination } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/pagination';
 import { fanRadioAPI } from '@/apis/fanradioAPI';
-
-const defaultBanners = [
-    `“TYPE YOUR WELCOME NOTE HERE 💌\nCOULD BE THE ONE BOTTAS ACTUALLY READS 👀”`,
-    `“SEND A MESSAGE TO YOUR FAVORITE DRIVER 💬\nAND WE’LL MAKE SURE IT HITS THE PIT WALL 🛠️”`,
-];
+import { useTranslations } from '@/hooks/useTranslations';
 
 const FanRadioPage = () => {
     const isLoggedIn = useAuthStore((s) => s.isAuthed());
     const openLoginModal = useUiStore((s) => s.openLoginModal);
-
     const router = useRouter();
+    const lang = useAuthStore((state) => state.lang);
+    const t = useTranslations();
+    const defaultBanners = [t.banner1, t.banner2];
+
     const [message, setMessage] = useState('');
     const [language, setLanguage] = useState<'ko' | 'en'>('ko');
     const [modalOpen, setModalOpen] = useState(false);
@@ -33,6 +32,21 @@ const FanRadioPage = () => {
     const [editingId, setEditingId] = useState<number | null>(null);
 
     const [bannerItems, setBannerItems] = useState<string[]>(defaultBanners);
+
+    useEffect(() => {
+        const fetchBannerData = async () => {
+            const driverRadios = await fanRadioAPI.getDriverNumberRadios();
+            if (driverRadios && driverRadios.length > 0) {
+                const formattedApiBanners = driverRadios.map(
+                    (radio) => `#${radio.radioSn} Message by ${radio.radioNickname}\n“${radio.radioTextEng}”`
+                );
+                setBannerItems([...defaultBanners, ...formattedApiBanners]);
+            } else {
+                setBannerItems(defaultBanners); // 데이터 없으면 기본 배너만 설정
+            }
+        };
+        fetchBannerData();
+    }, [lang, t.banner1, t.banner2]);
 
     /** 전송 진행 상태 & 서버 응답 저장 */
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -52,21 +66,21 @@ const FanRadioPage = () => {
 
         // 언어는 사용자가 직접 토글(필요 시 서버 데이터로 초기값을 정하고 싶으면 여기에 로직 추가)
     }, [router.isReady, router.query]);
-    // ✅ 페이지 로드 시 '드라이버 넘버' 라디오를 가져오는 useEffect를 추가합니다.
+    //페이지 로드 시 '드라이버 넘버' 라디오를 가져오는 useEffect를 추가
     useEffect(() => {
         const fetchBannerData = async () => {
             const driverRadios = await fanRadioAPI.getDriverNumberRadios();
 
             if (driverRadios && driverRadios.length > 0) {
-                // API로부터 받은 데이터를 배너 텍스트 형식으로 변환합니다.
+                // API로부터 받은 데이터를 배너 텍스트 형식으로 변환
                 const formattedApiBanners = driverRadios.map(
                     (radio) => `#${radio.radioSn} Message by ${radio.radioNickname}\n“${radio.radioTextEng}”`
                 );
 
-                // 기본 안내 문구 뒤에 API 배너를 추가하여 상태를 업데이트합니다.
+                // 기본 안내 문구 뒤에 API 배너를 추가하여 상태를 업데이트
                 setBannerItems([...defaultBanners, ...formattedApiBanners]);
             }
-            // 데이터가 없으면, 상태는 defaultBanners로 유지됩니다.
+            // 데이터가 없으면, 상태는 defaultBanners로 유지
         };
 
         fetchBannerData();
@@ -195,7 +209,7 @@ const FanRadioPage = () => {
                         ))}
                     </Swiper>
 
-                    <div className="fan-radio-pagination absolute bottom-3 left-0 right-0 z-10 flex justify-center items-center gap-1.5" />
+                    <div className="fan-radio-pagination absolute bottom-3 left-0 right-0 z-10 flex justify-center items-center gap-1" />
                 </div>
             </div>
 

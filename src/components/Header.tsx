@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Dropdown from './Dropdown';
 import { useAuthStore } from '../../store/authStore';
 import { loginAPI } from '@/apis/loginAPI';
+import { useRouter } from 'next/router';
 
 interface HeaderProps {
     title: string;
@@ -13,24 +14,36 @@ interface HeaderProps {
 }
 
 const Header = ({ title, rightIcon = 'globe' }: HeaderProps) => {
-    const logout = () => {}
-
+    const router = useRouter();
+    const currentLang = useAuthStore((state) => state.lang);
+    const setLang = useAuthStore((state) => state.setLang);
+    const logoutAction = useAuthStore((state) => state.logout);
     const [isLangModalOpen, setIsLangModalOpen] = useState(false);
-    const [currentLang, setCurrentLang] = useState<'en' | 'ko'>(useAuthStore.getState().lang);
-    
+
+    const handleLanguageSelect = async (lang: 'en' | 'ko') => {
+        setLang(lang);
+        setIsLangModalOpen(false);
+        try {
+            await loginAPI.setLanguagePreference(lang);
+        } catch (error) {
+            console.error('Failed to set language preference:', error);
+        }
+    };
+    const logout = async () => {
+        try {
+            await loginAPI.logout();
+        } catch (e) {
+            console.error('Logout API failed, proceeding with client-side logout.', e);
+        } finally {
+            logoutAction();
+            router.push('/login');
+        }
+    };
 
     const languageOptions = [
         { value: 'en', label: 'English' },
         { value: 'ko', label: 'Korean' },
     ] as const;
-
-     const handleLanguageSelect = async (lang: 'en' | 'ko') => {
-        useAuthStore.getState().setLang(lang);
-        await loginAPI.setLanguagePreference(lang);
-
-        setCurrentLang(lang);
-        setIsLangModalOpen(false);
-    };
 
     const renderRightIcon = () => {
         if (rightIcon === 'login') {
@@ -59,7 +72,6 @@ const Header = ({ title, rightIcon = 'globe' }: HeaderProps) => {
         }
         if (rightIcon === 'logout') {
             return (
-                //  실제 logout 함수 연결
                 <button onClick={logout}>
                     <Image src="/icons/logout.svg" alt="Logout" width={30} height={30} />
                 </button>

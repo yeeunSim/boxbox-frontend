@@ -9,6 +9,7 @@ const MainPage = () => {
     const [lightsOn, setLightsOn] = useState<boolean[]>([false, false, false, false, false]);
     const totalLights = 5;
 
+    // 아자잣,,,!!!
     useEffect(() => {
         // 1. 목표 날짜를 설정
         const targetDate = new Date('2025-10-12T00:00:00+09:00');

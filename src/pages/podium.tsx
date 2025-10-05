@@ -23,6 +23,7 @@ const PodiumPage = () => {
     const [isModalLoading, setIsModalLoading] = useState(false);
     const [filterType, setFilterType] = useState<'popular' | 'latest'>('popular');
     const [searchTerm, setSearchTerm] = useState('');
+    const [inputValue, setInputValue] = useState('');
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
@@ -31,36 +32,32 @@ const PodiumPage = () => {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        const debounceTimer = setTimeout(() => {
-            const fetchData = async () => {
-                setIsLoading(true);
-                setError(null);
+        const fetchData = async () => {
+            setIsLoading(true);
+            setError(null);
 
-                const sortOption = filterType === 'popular' ? 'POPULAR' : 'LATEST';
-                let dataFromApi: PodiumItem[];
+            const sortOption = filterType === 'popular' ? 'POPULAR' : 'LATEST';
+            let dataFromApi: PodiumItem[];
 
-                if (searchTerm.trim() !== '') {
-                    dataFromApi = await podiumAPI.searchPodiumList(searchTerm, 0, sortOption);
-                } else {
-                    dataFromApi = await podiumAPI.getPodiumList(0, sortOption);
-                }
+            if (searchTerm.trim() !== '') {
+                dataFromApi = await podiumAPI.searchPodiumList(searchTerm, 0, sortOption);
+            } else {
+                dataFromApi = await podiumAPI.getPodiumList(0, sortOption);
+            }
 
-                const formattedUsers: User[] = dataFromApi.map((item) => ({
-                    id: item.radioSn,
-                    nickname: item.writerNickname,
-                    likes: item.likeCount,
-                    message: item.previewEng,
-                    isLiked: item.likeYn,
-                }));
-                setDisplayedUsers(formattedUsers);
+            const formattedUsers: User[] = dataFromApi.map((item) => ({
+                id: item.radioSn,
+                nickname: item.writerNickname,
+                likes: item.likeCount,
+                message: item.previewEng,
+                isLiked: item.likeYn,
+            }));
+            setDisplayedUsers(formattedUsers);
 
-                setIsLoading(false);
-            };
+            setIsLoading(false);
+        };
 
-            fetchData();
-        }, 300);
-
-        return () => clearTimeout(debounceTimer);
+        fetchData();
     }, [searchTerm, filterType]);
 
     const popularRanks = useMemo(() => {
@@ -123,6 +120,13 @@ const PodiumPage = () => {
         setIsModalLoading(false);
     };
 
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            setSearchTerm(inputValue);
+        }
+    };
+
     const filterOptions = [
         { value: 'popular', label: 'Popular' },
         { value: 'latest', label: 'Latest' },
@@ -139,10 +143,15 @@ const PodiumPage = () => {
                     type="text"
                     placeholder="Nickname Search"
                     className="flex-1 bg-[#22202A] rounded-lg px-3 py-3 text-sm text-white placeholder-gray-400 focus:outline-none"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    value={inputValue} // value를 inputValue로 변경
+                    onChange={(e) => setInputValue(e.target.value)} // onChange는 setInputValue로 변경
+                    onKeyDown={handleKeyDown} // onKeyDown 이벤트 핸들러 추가
                 />
-                <button className="w-[47px] h-[46px] flex items-center justify-center rounded-lg bg-[#22202A]">
+                <button
+                    className="w-[47px] h-[46px] flex items-center justify-center rounded-lg bg-[#22202A]"
+                    // ✅ 검색 버튼을 눌렀을 때도 검색이 되도록 onClick 추가
+                    onClick={() => setSearchTerm(inputValue)}
+                >
                     <Image src="/icons/search.svg" alt="Search" width={23} height={23} />
                 </button>
                 <div className="relative">

@@ -13,6 +13,11 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 import { fanRadioAPI } from '@/apis/fanradioAPI';
 
+const defaultBanners = [
+    `“TYPE YOUR WELCOME NOTE HERE 💌\nCOULD BE THE ONE BOTTAS ACTUALLY READS 👀”`,
+    `“SEND A MESSAGE TO YOUR FAVORITE DRIVER 💬\nAND WE’LL MAKE SURE IT HITS THE PIT WALL 🛠️”`,
+];
+
 const FanRadioPage = () => {
     const isLoggedIn = useAuthStore((s) => s.isAuthed());
     const openLoginModal = useUiStore((s) => s.openLoginModal);
@@ -26,6 +31,8 @@ const FanRadioPage = () => {
     const [nextPath, setNextPath] = useState('');
     const confirmedNavigation = useRef(false);
     const [editingId, setEditingId] = useState<number | null>(null);
+
+    const [bannerItems, setBannerItems] = useState<string[]>(defaultBanners);
 
     /** 전송 진행 상태 & 서버 응답 저장 */
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -45,19 +52,30 @@ const FanRadioPage = () => {
 
         // 언어는 사용자가 직접 토글(필요 시 서버 데이터로 초기값을 정하고 싶으면 여기에 로직 추가)
     }, [router.isReady, router.query]);
+    // ✅ 페이지 로드 시 '드라이버 넘버' 라디오를 가져오는 useEffect를 추가합니다.
+    useEffect(() => {
+        const fetchBannerData = async () => {
+            const driverRadios = await fanRadioAPI.getDriverNumberRadios();
+
+            if (driverRadios && driverRadios.length > 0) {
+                // API로부터 받은 데이터를 배너 텍스트 형식으로 변환합니다.
+                const formattedApiBanners = driverRadios.map(
+                    (radio) => `#${radio.radioSn} Message by ${radio.radioNickname}\n“${radio.radioTextEng}”`
+                );
+
+                // 기본 안내 문구 뒤에 API 배너를 추가하여 상태를 업데이트합니다.
+                setBannerItems([...defaultBanners, ...formattedApiBanners]);
+            }
+            // 데이터가 없으면, 상태는 defaultBanners로 유지됩니다.
+        };
+
+        fetchBannerData();
+    }, []); // 최초 1회만 실행
 
     //  텍스트 입력 시도 시 로그인 모달을 띄우는 함수
     const handleFocus = () => {
         if (!isLoggedIn) openLoginModal();
     };
-
-    const banners = [
-        `“TYPE YOUR WELCOME NOTE HERE 💌COULD BE THE ONE BOTTAS ACTUALLY READS 👀”`,
-        `“SEND A MESSAGE TO YOUR FAVORITE DRIVER 💬AND WE’LL MAKE SURE IT HITS THE PIT WALL 🛠️”`,
-        `“REV UP YOUR PASSION 🚗💨\nF1 FANS UNITE WITH YOUR WORDS”`,
-        `“FEELING FAST?DROP A NOTE BEFORE THE NEXT LAP 🏁”`,
-        `“YOUR WORDS, THEIR EARS 🎧SEND LOVE TO THE TRACKSIDE”`,
-    ];
 
     /* 페이지 이탈 방지 로직 */
     useEffect(() => {
@@ -159,16 +177,17 @@ const FanRadioPage = () => {
                         }}
                         className="w-full"
                     >
-                        {banners.map((text, idx) => (
+                        {bannerItems.map((text, idx) => (
                             <SwiperSlide key={idx}>
                                 <div
-                                    className="min-w-full h-[100px] sm:h-[120px] flex flex-col justify-center items-center px-4 py-3 text-center text-[#383838]"
+                                    className="min-w-full h-[100px] sm:h-[120px] flex flex-col justify-center items-center px-4 py-3 text-center"
                                     style={{
                                         background:
                                             'linear-gradient(90deg, #00DDBC 0%, #009A94 35%, #009A94 49.52%, #009A94 65%, #00DDBC 100%)',
                                     }}
                                 >
-                                    <div className="flex-1 flex items-center justify-center whitespace-pre-wrap break-words text-xs sm:text-sm text-[#02F5D0] ">
+                                    {/* ✅ 텍스트 색상을 디자인에 맞게 수정했습니다. */}
+                                    <div className="flex-1 flex items-center justify-center whitespace-pre-wrap break-words text-xs sm:text-sm text-[#02F5D0]">
                                         {text}
                                     </div>
                                 </div>

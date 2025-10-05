@@ -112,7 +112,8 @@ const MainPage = () => {
 
                 <div className="p-4">
                     <p className="text-white text-[17px] text-right leading-relaxed">
-                        “WELCOME TO KOREA, AMG &amp; BOTTAS!”
+                        “WELCOME TO KOREA,
+                        <br /> AMG &amp; BOTTAS!”
                     </p>
                 </div>
             </div>
@@ -132,5 +133,5 @@ const MainPage = () => {
     );
 };
 
-MainPage.title = 'Box Box';
+MainPage.title = 'BoxBox';
 export default MainPage;

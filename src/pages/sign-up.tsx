@@ -5,6 +5,7 @@ import { Listbox, Transition } from '@headlessui/react';
 import Link from 'next/link';
 import { signUpAPI, verifyAPI } from '@/apis/loginAPI';
 import axios, { type AxiosError } from 'axios';
+import Modal from '@/components/Modal';
 
 type ApiErrorBody = { message?: string };
 
@@ -30,6 +31,9 @@ export default function SignUpPage() {
     const [showRequiredModal, setShowRequiredModal] = useState(false);
     const [showOptionalModal, setShowOptionalModal] = useState(false);
     const [agreementTrigger, setAgreementTrigger] = useState<null | 'all' | 'required' | 'optional'>(null);
+
+    const [showModal, setShowModal] = useState(false);
+    const [modalMsg, setModalMsg] = useState('');
 
     const [formData, setFormData] = useState({
         email: '',
@@ -210,15 +214,18 @@ export default function SignUpPage() {
         if (nickVerified !== true) return alert('닉네임 중복확인을 완료해 주세요.');
 
         if (formData.password !== formData.confirmPassword) {
-            alert('비밀번호가 일치하지 않습니다.');
+            setModalMsg('비밀번호가 일치하지 않습니다.');
+            setShowModal(true);
             return;
         }
         if (!isValidPassword(formData.password)) {
-            alert('비밀번호는 8–12자이며 -, ., / 문자를 포함할 수 없습니다.');
+            setModalMsg('비밀번호는 8–12자이며 -, ., / 문자를 포함할 수 없습니다.');
+            setShowModal(true);
             return;
         }
         if (!agreements.required) {
-            alert('필수 약관에 동의해 주세요.');
+            setModalMsg('필수 약관에 동의해 주세요.');
+            setShowModal(true);
             return;
         }
 
@@ -245,7 +252,8 @@ export default function SignUpPage() {
                 axiosErr.response?.data?.message ??
                 axiosErr.message ??
                 '회원가입 중 오류가 발생했어요. 잠시 후 다시 시도해 주세요.';
-            alert(msg);
+            setModalMsg(msg);
+            setShowModal(true);
         } finally {
             setSubmitting(false);
         }
@@ -600,7 +608,6 @@ export default function SignUpPage() {
                         </div>
                         <button
                             type="submit"
-                            disabled={submitting || !isFormValid}
                             className="h-11 w-full rounded-xl bg-[#02F5D0] text-sm text-black transition hover:bg-opacity-80 disabled:opacity-60"
                         >
                             {submitting ? 'Registering…' : 'Register'}
@@ -731,6 +738,14 @@ export default function SignUpPage() {
                             </div>
                         </div>
                     )}
+
+                    <Modal
+                        isOpen={showModal}
+                        title="회원가입 오류!"
+                        message={modalMsg}
+                        primaryText="확인"
+                        onPrimary={() => { setShowModal(false) }}
+                    />
                 </div>
             </main>
         </>

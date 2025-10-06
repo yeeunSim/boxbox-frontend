@@ -15,6 +15,7 @@ interface User {
     likes: number;
     message: string;
     isLiked: boolean;
+    rank: number;
 }
 
 const PodiumPage = () => {
@@ -54,12 +55,13 @@ const PodiumPage = () => {
                 dataFromApi = await podiumAPI.getPodiumList(reset ? 0 : page, sortOption);
             }
 
-            const formattedUsers: User[] = dataFromApi.map((item) => ({
+            const formattedUsers: User[] = dataFromApi.map((item, index) => ({
                 id: item.radioSn,
                 nickname: item.writerNickname,
                 likes: item.likeCount,
                 message: lang === 'ko' ? item.previewKor : item.previewEng,
                 isLiked: item.likeYn,
+                rank: index + 1
             }));
 
             if (reset) {
@@ -299,7 +301,7 @@ const PodiumPage = () => {
                     selectedUser
                         ? {
                               id: selectedUser.id,
-                              number: `#${selectedUser.id}`,
+                              number: `#${selectedUser.rank}`,
                               text: selectedUser.message,
                               isLiked: selectedUser.isLiked,
                           }

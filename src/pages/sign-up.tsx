@@ -650,8 +650,8 @@ export default function SignUpPage() {
                                         <li>
                                             수집 항목:
                                             <ul className="list-['-_'] space-y-1 pl-4">
-                                                <li>필수: 이메일, 비밀번호(암호화 저장), 생년월일</li>
-                                                <li>선택: 성별, 닉네임(사용시)</li>
+                                                <li>필수: 이메일, 비밀번호(암호화 저장)</li>
+                                                <li>선택: 생년월일, 성별, 닉네임(사용시)</li>
                                             </ul>
                                         </li>
                                         <li>

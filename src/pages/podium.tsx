@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import Image from 'next/image';
 import Dropdown from '@/components/Dropdown';
 import PodiumModal from '@/components/PodiumModal';
@@ -32,33 +32,73 @@ const PodiumPage = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            setIsLoading(true);
-            setError(null);
+    // 무한스크롤용 상태
+    const [page, setPage] = useState(0);
+    const [hasMore, setHasMore] = useState(true);
+    const loaderRef = useRef<HTMLDivElement | null>(null);
 
-            const sortOption = filterType === 'popular' ? 'POPULAR' : 'LATEST';
-            let dataFromApi: PodiumItem[];
+    // 데이터 fetch 함수
+    const fetchData = async (reset = false) => {
+        if (!hasMore && !reset) return;
 
+        setIsLoading(true);
+        setError(null);
+
+        const sortOption = filterType === 'popular' ? 'POPULAR' : 'LATEST';
+        let dataFromApi: PodiumItem[];
+
+        try {
             if (searchTerm.trim() !== '') {
-                dataFromApi = await podiumAPI.searchPodiumList(searchTerm, 0, sortOption);
+                dataFromApi = await podiumAPI.searchPodiumList(searchTerm, reset ? 0 : page, sortOption);
             } else {
-                dataFromApi = await podiumAPI.getPodiumList(0, sortOption);
+                dataFromApi = await podiumAPI.getPodiumList(reset ? 0 : page, sortOption);
             }
 
             const formattedUsers: User[] = dataFromApi.map((item) => ({
                 id: item.radioSn,
                 nickname: item.writerNickname,
                 likes: item.likeCount,
-
                 message: lang === 'ko' ? item.previewKor : item.previewEng,
                 isLiked: item.likeYn,
             }));
-            setDisplayedUsers(formattedUsers);
+
+            if (reset) {
+                setDisplayedUsers(formattedUsers);
+                setPage(1);
+                setHasMore(formattedUsers.length > 0);
+            } else {
+                setDisplayedUsers((prev) => [...prev, ...formattedUsers]);
+                setPage((prev) => prev + 1);
+                setHasMore(formattedUsers.length > 0);
+            }
+        } catch (err) {
+            setError('데이터 불러오기 실패');
+        } finally {
             setIsLoading(false);
-        };
-        fetchData();
+        }
+    };
+
+    // 검색어/필터/언어 변경 시 목록 리셋 후 새로 불러오기
+    useEffect(() => {
+        fetchData(true);
     }, [searchTerm, filterType, lang]);
+
+    // 무한스크롤 IntersectionObserver
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting && !isLoading) {
+                    fetchData();
+                }
+            },
+            { threshold: 1 }
+        );
+
+        if (loaderRef.current) observer.observe(loaderRef.current);
+        return () => {
+            if (loaderRef.current) observer.unobserve(loaderRef.current);
+        };
+    }, [isLoading]);
 
     const popularRanks = useMemo(() => {
         const rankMap = new Map<number, number>();
@@ -96,6 +136,7 @@ const PodiumPage = () => {
             alert('좋아요 처리에 실패했습니다.');
         }
     };
+
     /*목록 아이템 클릭 시 실행될 새로운 함수 */
     const handleItemClick = async (userFromList: User) => {
         setSelectedUser(userFromList);
@@ -132,7 +173,6 @@ const PodiumPage = () => {
         { value: 'latest', label: 'Latest' },
     ] as const;
 
-    if (isLoading) return <div className="flex justify-center items-center h-screen text-white">Loading...</div>;
     if (error) return <div className="flex justify-center items-center h-screen text-red-500">Error: {error}</div>;
 
     return (
@@ -149,7 +189,7 @@ const PodiumPage = () => {
                 />
                 <button
                     className="w-[47px] h-[46px] flex items-center justify-center rounded-lg bg-[#22202A]"
-                    // ✅ 검색 버튼을 눌렀을 때도 검색이 되도록 onClick 추가
+                    // 검색 버튼을 눌렀을 때도 검색이 되도록 onClick 추가
                     onClick={() => setSearchTerm(inputValue)}
                 >
                     <Image src="/icons/search.svg" alt="Search" width={23} height={23} />
@@ -182,7 +222,6 @@ const PodiumPage = () => {
             </div>
 
             {/* 순위 리스트 */}
-
             <div className="h-[700px] overflow-y-auto px-4 pb-4 mt-14 scrollbar-hide">
                 <div className="bg-[#22202A] rounded-2xl overflow-hidden mt-4">
                     <ul className="flex flex-col gap-3 p-4 pb-8">
@@ -222,7 +261,6 @@ const PodiumPage = () => {
 
                                         <div className="flex flex-col flex-1 min-w-0">
                                             <span className="font-bold text-white truncate">{user.nickname}</span>
-
                                             <span className="block text-xs text-gray-300 truncate">
                                                 “{user.message}”
                                             </span>
@@ -236,6 +274,11 @@ const PodiumPage = () => {
                             );
                         })}
                     </ul>
+                    {/* 무한스크롤 트리거 */}
+                    <div ref={loaderRef} className="h-10 flex justify-center items-center text-gray-400">
+                        {isLoading && <span>Loading...</span>}
+                        {!hasMore && <span></span>}
+                    </div>
                 </div>
             </div>
 

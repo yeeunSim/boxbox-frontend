@@ -20,6 +20,7 @@ interface PaginatedApiResponse {
     message: string;
     data: {
         content: PodiumItem[];
+        last: boolean;
     };
 }
 
@@ -38,6 +39,7 @@ const getPodiumList = async (page: number, sort: 'POPULAR' | 'LATEST') => {
             params: { page, size: 10, sort },
         });
         return response.data.data.content || [];
+        const isLast = response.data.data.last;
     } catch (error) {
         console.error('포디움 목록 조회 API 실패:', error);
         return [];

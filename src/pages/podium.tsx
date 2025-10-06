@@ -108,31 +108,35 @@ const PodiumPage = () => {
         return rankMap;
     }, [displayedUsers]);
 
+    const applyToggle = (u: User) => {
+        const nextIsLiked = !u.isLiked;
+        const nextLikes = nextIsLiked ? u.likes + 1 : Math.max(0, u.likes - 1);
+        return { ...u, isLiked: nextIsLiked, likes: nextLikes };
+    };
+
     const handleLike = async (id: number) => {
         if (!isLoggedIn) {
             openLoginModal();
             return;
         }
-        const success = await podiumAPI.likePodiumPost(id);
 
-        if (success) {
-            const updateUserState = (users: User[]) =>
-                users.map((user) => {
-                    if (user.id === id) {
-                        const newIsLiked = !user.isLiked;
-                        const newLikes = newIsLiked ? user.likes + 1 : user.likes - 1;
-                        return { ...user, isLiked: newIsLiked, likes: newLikes };
-                    }
-                    return user;
-                });
-            setDisplayedUsers(updateUserState);
+        setDisplayedUsers(prev => prev.map(u => (u.id === id ? applyToggle(u) : u)));
+        setSelectedUser(prev => (prev?.id === id ? applyToggle(prev) : prev));
 
-            if (selectedUser?.id === id) {
-                setSelectedUser((prev) =>
-                    prev ? { ...prev, isLiked: !prev.isLiked, likes: prev.likes + (prev.isLiked ? -1 : 1) } : null
-                );
+        try {
+            const resp = await podiumAPI.likePodiumPost(id);
+            const ok = !!resp && typeof resp.isLiked === 'boolean' && typeof resp.likes === 'number';
+            if (ok) {
+                setDisplayedUsers(prev => prev.map(u => (u.id === id ? { ...u, isLiked: resp!.isLiked, likes: resp!.likes } : u)));
+                setSelectedUser(prev => (prev?.id === id ? { ...prev, isLiked: resp!.isLiked, likes: resp!.likes } : prev));
+            } else {
+                setDisplayedUsers(prev => prev.map(u => (u.id === id ? applyToggle(u) : u)));
+                setSelectedUser(prev => (prev?.id === id ? applyToggle(prev) : prev));
+                alert('좋아요 처리에 실패했습니다.');
             }
-        } else {
+        } catch {
+            setDisplayedUsers(prev => prev.map(u => (u.id === id ? applyToggle(u) : u)));
+            setSelectedUser(prev => (prev?.id === id ? applyToggle(prev) : prev));
             alert('좋아요 처리에 실패했습니다.');
         }
     };

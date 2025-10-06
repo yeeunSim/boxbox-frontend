@@ -27,13 +27,28 @@ const PodiumModal = ({ isOpen, nickname, message, onClose, onLike }: PodiumModal
         const target = document.getElementById(`radio-card-podium-${message.id}`);
         if (!target) return;
 
-        // 0.3초 지연 후 캡처를 실행하여 렌더링 시간을 확보
         setTimeout(() => {
             html2canvas(target, {
                 scale: 2,
-                // 배경색을 명확하게 지정하여 투명해지는 것을 방지
                 backgroundColor: '#191922',
                 useCORS: true,
+                onclone: (clonedDoc) => {
+                    const iconGroup = clonedDoc.querySelector('.translate-x-4') as HTMLElement;
+                    if (iconGroup) iconGroup.style.transform = 'none';
+
+                    const messageNumber = clonedDoc.querySelector('.-translate-x-4') as HTMLElement;
+                    if (messageNumber) messageNumber.style.transform = 'none';
+
+                    const waveContainer = clonedDoc.querySelector('.-mt-6') as HTMLElement;
+                    if (waveContainer) waveContainer.style.marginTop = '0';
+
+                    const radioText = clonedDoc.querySelector('.radio-text') as HTMLElement;
+                    if (radioText) {
+                        radioText.style.position = 'relative';
+
+                        radioText.style.top = '-14px';
+                    }
+                },
             }).then((canvas) => {
                 canvas.toBlob((blob) => {
                     if (blob) {
@@ -79,7 +94,7 @@ const PodiumModal = ({ isOpen, nickname, message, onClose, onLike }: PodiumModal
                         <h2 className="font-bold text-right text-[#02F5D0] text-[28px]">{nickname}</h2>
                         <div className="flex justify-end items-center gap-2">
                             <Image src="/icons/mercedes-logo.svg" alt="Mercedes Logo" width={24} height={24} />
-                            <span className="font-bold text-[30px]">Radio</span>
+                            <span className="font-bold text-[30px] radio-text">Radio</span>
                         </div>
                     </div>
                     <div className="relative w-full -mt-6">

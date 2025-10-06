@@ -50,7 +50,7 @@ function AppContent({ Component, pageProps }: AppPropsWithLayout) {
                 try {
                     // ⚠️ axiosConfig에서 withCredentials: true 설정돼 있어야 쿠키가 붙음
                     const { data } = await http.post('/refresh');
-                    const newAccess = (data as any).accessToken as string | undefined;
+                    const newAccess = (data as any).newAccess as string | undefined;
                     if (!newAccess) throw new Error('No accessToken in response');
 
                     setAccessToken(newAccess);

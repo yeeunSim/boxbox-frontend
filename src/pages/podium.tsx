@@ -266,9 +266,9 @@ const PodiumPage = () => {
                                             </span>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-1">
+                                    <div className="flex flex-col items-center gap-0.5">
                                         <Image src="/icons/likes.svg" alt="Likes" width={16} height={16} />
-                                        <span className="text-sm">{user.likes}</span>
+                                        <span className="text-xs text-gray-300">{user.likes}</span>
                                     </div>
                                 </li>
                             );

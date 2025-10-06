@@ -29,8 +29,13 @@ http.interceptors.response.use(
     if (typeof window === 'undefined') return Promise.reject(err);
 
     const original = err.config as (InternalAxiosRequestConfig & { _retry?: boolean }) | undefined;
-    if (!original || err.response?.status !== 401 || original._retry) {
-      return Promise.reject(err);
+    if (!original || original._retry || err.response?.status !== 401) {
+        return Promise.reject(err);
+    }
+
+    if (original.url === '/login' || original.url === '/refresh') {
+        // 토큰 갱신 시도 없이 바로 로그인 컴포넌트의 catch 블록으로 전달
+        return Promise.reject(err);
     }
 
     const originalCopy: InternalAxiosRequestConfig & { _retry?: boolean } = { ...original, _retry: true };

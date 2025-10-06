@@ -65,8 +65,6 @@ const FanRadioPage = () => {
         const { editId, editText } = router.query;
         if (editId) setEditingId(Number(editId));
         if (editText) setMessage(String(editText));
-
-        // 언어는 사용자가 직접 토글(필요 시 서버 데이터로 초기값을 정하고 싶으면 여기에 로직 추가)
     }, [router.isReady, router.query]);
     //페이지 로드 시 '드라이버 넘버' 라디오를 가져오는 useEffect를 추가
     useEffect(() => {
@@ -169,6 +167,7 @@ const FanRadioPage = () => {
                     border-radius: 50%;
                     opacity: 1;
                     transition: background-color 0.3s;
+                    margin: 0 3px !important;
                 }
                 .fan-radio-pagination .swiper-pagination-bullet-active {
                     background-color: #02f5d0;
@@ -215,7 +214,7 @@ const FanRadioPage = () => {
                         ))}
                     </Swiper>
 
-                    <div className="fan-radio-pagination absolute bottom-3 left-0 right-0 z-10 flex justify-center items-center gap-1" />
+                    <div className="fan-radio-pagination absolute bottom-3 left-0 right-0 z-10 flex justify-center items-center" />
                 </div>
             </div>
 

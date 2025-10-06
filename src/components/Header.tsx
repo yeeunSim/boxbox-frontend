@@ -15,6 +15,7 @@ interface HeaderProps {
 
 const Header = ({ title, rightIcon = 'globe' }: HeaderProps) => {
     const router = useRouter();
+    const isLoggedIn = useAuthStore((state) => state.isAuthed());
     const currentLang = useAuthStore((state) => state.lang);
     const setLang = useAuthStore((state) => state.setLang);
     const logoutAction = useAuthStore((state) => state.logout);
@@ -23,12 +24,17 @@ const Header = ({ title, rightIcon = 'globe' }: HeaderProps) => {
     const handleLanguageSelect = async (lang: 'en' | 'ko') => {
         setLang(lang);
         setIsLangModalOpen(false);
-        try {
-            await loginAPI.setLanguagePreference(lang);
-        } catch (error) {
-            console.error('Failed to set language preference:', error);
+
+        //  로그인 상태일 때만 서버에 언어 설정을 저장하는 API를 호출
+        if (isLoggedIn) {
+            try {
+                await loginAPI.setLanguagePreference(lang);
+            } catch (error) {
+                console.error('Failed to set language preference on server:', error);
+            }
         }
     };
+
     const logout = async () => {
         try {
             await loginAPI.logout();

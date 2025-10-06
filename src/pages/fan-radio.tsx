@@ -13,15 +13,19 @@ import { Pagination } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/pagination';
 import { fanRadioAPI } from '@/apis/fanradioAPI';
-import { useTranslations } from '@/hooks/useTranslations';
 
 const FanRadioPage = () => {
     const isLoggedIn = useAuthStore((s) => s.isAuthed());
     const openLoginModal = useUiStore((s) => s.openLoginModal);
     const router = useRouter();
     const lang = useAuthStore((state) => state.lang);
-    const t = useTranslations();
-    const defaultBanners = [t.banner1, t.banner2];
+
+    const defaultBanners = [
+        '“언어 감지를 수동으로 진행하고 있습니다. 🛠️\n정확한 번역을 위해 선택하신 언어로만 작성해 주세요. 🥹”',
+        '“Language detection is done manually. 🛠️\nFor smoother translation please write only in your selected language. 🥹”',
+    ];
+
+    const [bannerItems, setBannerItems] = useState<string[]>(defaultBanners);
 
     const [message, setMessage] = useState('');
     const [language, setLanguage] = useState<'ko' | 'en'>('ko');
@@ -33,7 +37,8 @@ const FanRadioPage = () => {
     const confirmedNavigation = useRef(false);
     const [editingId, setEditingId] = useState<number | null>(null);
 
-    const [bannerItems, setBannerItems] = useState<string[]>(defaultBanners);
+    const [showLangChangeModal, setShowLangChangeModal] = useState(false);
+    const [pendingLang, setPendingLang] = useState<'ko' | 'en' | null>(null);
 
     // 미리보기 유틸
     const getPreview = (text: string, limit = 50) => (text.length > limit ? text.slice(0, limit) + '...' : text);
@@ -47,11 +52,11 @@ const FanRadioPage = () => {
                 );
                 setBannerItems([...defaultBanners, ...formattedApiBanners]);
             } else {
-                setBannerItems(defaultBanners); // 데이터 없으면 기본 배너만 설정
+                setBannerItems(defaultBanners);
             }
         };
         fetchBannerData();
-    }, [lang, t.banner1, t.banner2]);
+    }, []); // lang 의존성 제거
 
     /** 전송 진행 상태 & 서버 응답 저장 */
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -229,38 +234,31 @@ const FanRadioPage = () => {
                 </div>
 
                 {/* 언어 선택 */}
-                <div className="flex justify-end gap-3 mb-2">
+                <div className="flex justify-end gap-4 mb-2">
                     {[
-                        { code: 'ko', icon: '/icons/kr.svg' },
-                        { code: 'en', icon: '/icons/us.svg' },
-                    ].map(({ code, icon }) => (
+                        { code: 'ko', icon: '/icons/kr.svg', label: 'KR' },
+                        { code: 'en', icon: '/icons/us.svg', label: 'EN' },
+                    ].map(({ code, icon, label }) => (
                         <div className="flex items-center gap-1.5" key={code}>
                             <Image src={icon} alt={code.toUpperCase()} width={20} height={15} />
+                            <span className="text-xs text-gray-300">{label}</span> {/* ✅ kor / eng 텍스트 */}
                             <div
-                                className={`w-[15px] h-[15px] rounded-[2px] border-2 border-[#02f5d0] flex items-center justify-center cursor-pointer ${
-                                    language === code ? 'bg-[#02f5d0]' : ''
-                                }`}
+                                className={`w-[15px] h-[15px] rounded-full border-2 border-[#02f5d0] flex items-center justify-center cursor-pointer`}
                                 onClick={() => {
-                                    setLanguage(code as 'ko' | 'en');
-                                    setMessage(''); // 입력창 초기화
+                                    if (message.length > 0 && language !== code) {
+                                        // 작성 중이면 모달 띄움
+                                        setPendingLang(code as 'ko' | 'en');
+                                        setShowLangChangeModal(true);
+                                    } else {
+                                        // 작성 중이 아니면 바로 언어 전환
+                                        setLanguage(code as 'ko' | 'en');
+                                        setMessage('');
+                                    }
                                 }}
                             >
                                 {language === code && (
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="12"
-                                        height="12"
-                                        viewBox="0 0 20 20"
-                                        fill="none"
-                                    >
-                                        <path
-                                            d="M4 10L8 14L16 6"
-                                            stroke="#383838"
-                                            strokeWidth="3"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                        />
-                                    </svg>
+                                    <div className="w-[7px] h-[7px] bg-[#02f5d0] rounded-full" />
+                                    // ✅ 선택된 경우 안에 작은 점 표시
                                 )}
                             </div>
                         </div>
@@ -301,7 +299,7 @@ const FanRadioPage = () => {
                         onFocus={handleFocus}
                     />
 
-                    {/* ✅ 입력 필드 내부 오른쪽 아래에 표시 */}
+                    {/* 입력 필드 내부 오른쪽 아래에 표시 */}
                     <div className="absolute bottom-3 right-4 text-[#444d56] text-[11px] sm:text-xs pointer-events-none">
                         {message.length} / 500
                     </div>
@@ -320,29 +318,22 @@ const FanRadioPage = () => {
             </div>
 
             <Modal
-                isOpen={modalOpen}
-                title={editingId ? 'Fan Radio updated' : 'Fan Radio sent'}
-                message={
-                    createdRadio
-                        ? `#${createdRadio.radioSn} by ${createdRadio.writerNickname}`
-                        : 'See it in the special frame ✨'
-                }
-                primaryText="Show me"
-                secondaryText="Close"
-                icon={<span>🚀</span>}
+                isOpen={showLangChangeModal}
+                title="Change language?"
+                message="Switching will clear your current message. Proceed?"
+                primaryText="Switch"
+                secondaryText="Cancel"
                 onPrimary={() => {
-                    setModalOpen(false);
-                    setMessage('');
-                    confirmedNavigation.current = true;
-                    const msg =
-                        language === 'ko'
-                            ? createdRadio?.radioTextKor ?? message
-                            : createdRadio?.radioTextEng ?? message;
-                    router.push(`/my-page?modal=fan-radio&message=${encodeURIComponent(msg)}`);
+                    if (pendingLang) {
+                        setLanguage(pendingLang);
+                        setMessage('');
+                    }
+                    setShowLangChangeModal(false);
+                    setPendingLang(null);
                 }}
                 onSecondary={() => {
-                    setModalOpen(false);
-                    setMessage('');
+                    setShowLangChangeModal(false);
+                    setPendingLang(null);
                 }}
             />
 

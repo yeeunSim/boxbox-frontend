@@ -379,11 +379,11 @@ export default function SignUpPage() {
                                 {/* 불일치 X 아이콘 */}
                                 {isPasswordMatching ? (
                                     <span className="absolute right-10 top-1/2 -translate-y-1/2 text-base text-[#02F5D0]">
-                                        ✓
+                                        ✔
                                     </span>
                                 ) : formData.confirmPassword ? (
                                     <span className="absolute right-10 top-1/2 -translate-y-1/2 text-base text-red-600">
-                                        X
+                                        ✖
                                     </span>
                                 ) : null}
 

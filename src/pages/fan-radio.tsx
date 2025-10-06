@@ -35,6 +35,9 @@ const FanRadioPage = () => {
 
     const [bannerItems, setBannerItems] = useState<string[]>(defaultBanners);
 
+    // 미리보기 유틸
+    const getPreview = (text: string, limit = 50) => (text.length > limit ? text.slice(0, limit) + '...' : text);
+
     useEffect(() => {
         const fetchBannerData = async () => {
             const driverRadios = await fanRadioAPI.getDriverNumberRadios();
@@ -262,32 +265,37 @@ const FanRadioPage = () => {
                 </div>
 
                 {/* 메시지 박스 */}
-                <div className="w-full h-[180px] sm:h-[210px] rounded-[15px] relative">
-                    <textarea
-                        className={`w-full h-full p-4 bg-[#22202A] text-sm sm:text-base resize-none rounded-[15px] placeholder:text-[#5a6570] ${
-                            !isLoggedIn ? 'text-gray-500' : 'text-white'
-                        }`}
-                        placeholder={
-                            isLoggedIn
-                                ? language === 'ko'
-                                    ? '한국어로 입력해주세요 😉'
-                                    : 'Please type in English only 😉'
-                                : '로그인 후 메시지를 작성할 수 있습니다.'
-                        }
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                        maxLength={500}
-                        readOnly={!isLoggedIn}
-                        onFocus={handleFocus}
-                    />
-                    <div className="absolute bottom-4 right-4 text-[#444d56] text-[11px] sm:text-xs">
-                        {message.length} / 500
-                    </div>
+                <textarea
+                    className={`w-full h-[180px] sm:h-[210px] p-4 bg-[#22202A] text-sm sm:text-base resize-none rounded-[15px] placeholder:text-[#5a6570] ${
+                        !isLoggedIn ? 'text-gray-500' : 'text-white'
+                    }`}
+                    placeholder={
+                        isLoggedIn
+                            ? language === 'ko'
+                                ? '한국어로 입력해주세요 😉'
+                                : 'Please type in English only 😉'
+                            : '로그인 후 메시지를 작성할 수 있습니다.'
+                    }
+                    value={message}
+                    onChange={(e) => {
+                        const val = e.target.value;
 
-                    {!isLoggedIn && (
-                        <div className="absolute inset-0 z-10 cursor-pointer rounded-[15px]" onClick={openLoginModal} />
-                    )}
-                </div>
+                        if (language === 'ko') {
+                            // 한국어 모드 → 영어 차단 + 500자 제한
+                            if (/^[ㄱ-ㅎ가-힣\s.,!?'"0-9]*$/.test(val) && val.length <= 500) {
+                                setMessage(val);
+                            }
+                        } else {
+                            // 영어 모드 → 한글 차단 + 500자 제한
+                            if (/^[a-zA-Z\s.,!?'"0-9]*$/.test(val) && val.length <= 500) {
+                                setMessage(val);
+                            }
+                        }
+                    }}
+                    maxLength={500}
+                    readOnly={!isLoggedIn}
+                    onFocus={handleFocus}
+                />
 
                 {/* 전송 버튼 */}
                 <div className="flex justify-center mt-4 sm:mt-6">
@@ -301,13 +309,15 @@ const FanRadioPage = () => {
                 </div>
             </div>
 
-            {/* 완료 모달 */}
             <Modal
                 isOpen={modalOpen}
                 title={editingId ? 'Fan Radio updated' : 'Fan Radio sent'}
                 message={
                     createdRadio
-                        ? `#${createdRadio.radioSn} by ${createdRadio.writerNickname}\n“${createdRadio.radioTextEng}”`
+                        ? `#${createdRadio.radioSn} by ${createdRadio.writerNickname}\n“${getPreview(
+                              language === 'ko' ? createdRadio.radioTextKor : createdRadio.radioTextEng,
+                              50
+                          )}”`
                         : 'See it in the special frame ✨'
                 }
                 primaryText="Show me"
@@ -317,7 +327,10 @@ const FanRadioPage = () => {
                     setModalOpen(false);
                     setMessage('');
                     confirmedNavigation.current = true;
-                    const msg = createdRadio?.radioTextEng ?? message;
+                    const msg =
+                        language === 'ko'
+                            ? createdRadio?.radioTextKor ?? message
+                            : createdRadio?.radioTextEng ?? message;
                     router.push(`/my-page?modal=fan-radio&message=${encodeURIComponent(msg)}`);
                 }}
                 onSecondary={() => {
@@ -325,7 +338,6 @@ const FanRadioPage = () => {
                     setMessage('');
                 }}
             />
-
             {/* 이탈 확인 모달 */}
             <Modal
                 isOpen={showLeaveModal}

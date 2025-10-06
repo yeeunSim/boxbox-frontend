@@ -165,7 +165,11 @@ const MyPageModal = ({ isOpen, nickname, messages = [], initialSlide = 0, onClos
                                             </div>
 
                                             <div className="p-4 pt-0">
-                                                <p className="text-[#02F5D0] text-[17px] text-right leading-relaxed whitespace-pre-wrap break-words">{`“${msg.text}”`}</p>
+                                                <div className="max-h-[180px] overflow-y-auto scrollbar-hide">
+                                                    <p className="text-[#02F5D0] text-[17px] text-right leading-relaxed whitespace-pre-wrap break-words">
+                                                        {`“${msg.text}”`}
+                                                    </p>
+                                                </div>
                                             </div>
 
                                             <div className="absolute bottom-4 left-0 right-0 z-10 flex justify-center items-center gap-[6px]">

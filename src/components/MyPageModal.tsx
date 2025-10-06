@@ -106,7 +106,7 @@ const MyPageModal = ({ isOpen, nickname, messages = [], initialSlide = 0, onClos
                                             ref={(el) => {
                                                 cardRefs.current[index] = el;
                                             }}
-                                            className="bg-[#191922] border-2 border-[#02F5D0] rounded-xl mx-auto flex flex-col gap-1"
+                                            className="relative bg-[#191922] border-2 border-[#02F5D0] rounded-xl mx-auto flex flex-col"
                                         >
                                             <div className="p-4">
                                                 <h2 className="font-bold text-right text-[#02F5D0] text-[28px]">
@@ -139,27 +139,33 @@ const MyPageModal = ({ isOpen, nickname, messages = [], initialSlide = 0, onClos
                                                     className="w-full h-auto object-contain -mt-1.5"
                                                 />
                                             </div>
-                                            <div className="p-4 pb-10 min-h-[100px] flex items-end justify-end">
+                                            {/* ✅ 2. 텍스트 컨테이너가 자연스럽게 파형 바로 아래에 위치하고, 내용에 따라 높이가 조절됩니다. */}
+                                            <div className="p-4 pt-0">
                                                 <p className="text-[#02F5D0] text-[17px] text-right leading-relaxed whitespace-pre-wrap break-words">{`“${msg.text}”`}</p>
                                             </div>
+
+                                            {/* ✅ 3. 페이지네이션 닷을 카드 내부에, absolute로 위치시킵니다. */}
+                                            <div className="absolute bottom-4 left-0 right-0 z-10 flex justify-center items-center gap-[6px]">
+                                                {messages.map((_, dotIndex) => (
+                                                    <div
+                                                        key={dotIndex}
+                                                        className={`w-[6px] h-[6px] rounded-full transition-colors duration-300 ${
+                                                            index === dotIndex ? 'bg-[#02f5d0]' : 'bg-[#00A19B]/50'
+                                                        }`}
+                                                    />
+                                                ))}
+                                            </div>
+
+                                            {/* 카드의 하단 여백을 위한 공간 확보용 div */}
+                                            <div className="h-10" />
                                         </div>
                                     </SwiperSlide>
                                 ))}
                             </Swiper>
-                            <div className="absolute bottom-4 left-0 right-0 z-10 flex justify-center items-center gap-[6px]">
-                                {messages.map((_, index) => (
-                                    <div
-                                        key={index}
-                                        className={`w-[6px] h-[6px] rounded-full transition-colors duration-300 ${
-                                            index === activeIndex ? 'bg-[#02f5d0]' : 'bg-[#00A19B]/50'
-                                        }`}
-                                    />
-                                ))}
-                            </div>
                         </div>
                     </>
                 ) : (
-                    // --- 2. 메시지가 없을 경우: 새로운 안내 UI ---
+                    // 메시지가 없을 경우
                     <div className="bg-[#191922] border-2 border-[#02F5D0] rounded-xl mx-auto flex flex-col items-center justify-center gap-6 p-8 min-h-[300px]">
                         <Image src="/icons/radio-btn.svg" alt="No messages" width={64} height={64} />
                         <p className="text-lg  text-center">{"You haven't written any messages yet."}</p>

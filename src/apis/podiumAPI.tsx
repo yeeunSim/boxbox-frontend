@@ -33,6 +33,8 @@ export interface PodiumDetailItem {
     likeYn: boolean;
 }
 
+export type LikeResult = { liked: boolean; likes: number };
+
 const getPodiumList = async (page: number, sort: 'POPULAR' | 'LATEST') => {
     try {
         const response = await api.get<PaginatedApiResponse>('/radio/list', {
@@ -71,16 +73,14 @@ const getPodiumDetail = async (radioSn: number) => {
     }
 };
 
-const likePodiumPost = async (radioSn: number) => {
-    try {
-        const response = await api.post('/radio-like', {
-            radioSn: radioSn,
-        });
-        return response.status === 200 || response.status === 201 || response.status === 204;
-    } catch (error) {
-        console.error('좋아요 API 실패:', error);
-        return false;
-    }
+export const likePodiumPost = async (radioSn: number) => {
+  try {
+    const res = await api.post<LikeResult>('/radio-like', { radioSn });
+    return { isLiked: res.data.liked, likes: res.data.likes };
+  } catch (e) {
+    console.error('좋아요 실패');
+    return null;
+  }
 };
 
 export const podiumAPI = {

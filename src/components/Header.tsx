@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Dropdown from './Dropdown';
+import Modal from '../components/Modal';
 import { useAuthStore } from '../../store/authStore';
 import { loginAPI } from '@/apis/loginAPI';
 import { useRouter } from 'next/router';
@@ -20,6 +21,7 @@ const Header = ({ title, rightIcon = 'globe' }: HeaderProps) => {
     const setLang = useAuthStore((state) => state.setLang);
     const logoutAction = useAuthStore((state) => state.logout);
     const [isLangModalOpen, setIsLangModalOpen] = useState(false);
+    const [logoutModalOpen, setLogoutModalOpen] = useState(false);
 
     const handleLanguageSelect = async (lang: 'en' | 'ko') => {
         setLang(lang);
@@ -42,6 +44,7 @@ const Header = ({ title, rightIcon = 'globe' }: HeaderProps) => {
             console.error('Logout API failed, proceeding with client-side logout.', e);
         } finally {
             logoutAction();
+            useAuthStore.persist.clearStorage();
             router.push('/login');
         }
     };
@@ -78,7 +81,7 @@ const Header = ({ title, rightIcon = 'globe' }: HeaderProps) => {
         }
         if (rightIcon === 'logout') {
             return (
-                <button onClick={logout}>
+                <button onClick={() => setLogoutModalOpen(true)}>
                     <Image src="/icons/logout.svg" alt="Logout" width={30} height={30} />
                 </button>
             );
@@ -92,6 +95,22 @@ const Header = ({ title, rightIcon = 'globe' }: HeaderProps) => {
                 <h1 className="font-bold text-[20px] sm:text-[24px] text-white">{title}</h1>
                 {renderRightIcon()}
             </div>
+
+            {/* 완료 모달 */}
+            <Modal
+                isOpen={logoutModalOpen}
+                title={'로그아웃 하시겠어요?'}
+                message={'Final Lap 🏁'}
+                primaryText="확인"
+                secondaryText="취소"
+                onPrimary={() => {
+                    setLogoutModalOpen(false);
+                    logout();
+                }}
+                onSecondary={() => {
+                    setLogoutModalOpen(false);
+                }}
+            />
         </header>
     );
 };

@@ -113,8 +113,8 @@ const handleNicknameVerify = async () => {
   if (!nickname) return alert('닉네임을 입력해 주세요.');
 
   try {
-    setEmailVerifying(true);
-    setEmailVerified(null);
+    setNickVerifying(true);
+    setNickVerified(null);
 
     await verifyAPI.checkNicknameAvailable(nickname); // 2xx => 사용 가능
     setNickVerified(true);
@@ -140,7 +140,7 @@ const handleNicknameVerify = async () => {
       alert('알 수 없는 오류가 발생했어요.');
     }
   } finally {
-    setNickVerified(false);
+    setNickVerifying(false);
   }
 };
 
@@ -252,7 +252,7 @@ const handleNicknameVerify = async () => {
                   disabled={emailVerifying || !formData.email}
                   className="h-11 flex-shrink-0 rounded-xl bg-[#02F5D0] px-5 text-xs text-black transition hover:bg-opacity-80 disabled:opacity-60"
                 >
-                  {emailVerifying ? 'CHECKING…' : emailVerified === true ? 'OK ✓' : 'VERIFY'}
+                  {emailVerifying ? 'CHECKING…' : emailVerified === true ? 'OK' : 'VERIFY'}
                 </button>
               </div>
 
@@ -305,7 +305,7 @@ const handleNicknameVerify = async () => {
                   disabled={nickVerifying || !formData.nickname}
                   className="h-11 flex-shrink-0 rounded-xl bg-[#02F5D0] px-5 text-xs text-black transition hover:bg-opacity-80 disabled:opacity-60"
                 >
-                  {nickVerifying ? 'CHECKING…' : nickVerified === true ? 'OK ✓' : 'VERIFY'}
+                  {nickVerifying ? 'CHECKING…' : nickVerified === true ? 'OK' : 'VERIFY'}
                 </button>
               </div>
 

@@ -40,8 +40,13 @@ http.interceptors.response.use(
 
     const originalCopy: InternalAxiosRequestConfig & { _retry?: boolean } = { ...original, _retry: true };
 
+    const refreshHttp = axios.create({
+      baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
+      withCredentials: true,
+    });
+
     try {
-      const resp = await http.post<RefreshResp>('/refresh', {}, { withCredentials: true });
+      const resp = await refreshHttp.post<RefreshResp>('/refresh');
       const newAT = resp.data?.newAccess;
 
       if (!newAT || typeof newAT !== 'string' || newAT.length < 10) {

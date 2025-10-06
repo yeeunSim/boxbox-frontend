@@ -42,7 +42,7 @@ const MyPage = () => {
                 const formattedMessages: FanMessage[] = dataFromApi.map((item) => ({
                     id: item.radioSn,
                     number: `#${String(item.radioSn).padStart(2, '0')}`,
-                    text: lang === 'ko' ? item.radioTextEng : item.radioTextKor, //백 오류
+                    text: lang === 'ko' ? item.radioTextKor : item.radioTextEng,
                 }));
                 setMyMessages(formattedMessages);
             }

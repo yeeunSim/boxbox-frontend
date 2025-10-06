@@ -36,7 +36,7 @@ export interface PodiumDetailItem {
 const getPodiumList = async (page: number, sort: 'POPULAR' | 'LATEST') => {
     try {
         const response = await api.get<PaginatedApiResponse>('/radio/list', {
-            params: { page, size: 10, sort },
+            params: { page, size: 20, sort },
         });
         return response.data.data.content || [];
         const isLast = response.data.data.last;

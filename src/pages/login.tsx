@@ -134,11 +134,12 @@ export default function LoginPage() {
                                     />
                                 </button>
                             </div>
-                            <div className="text-left text-xs">
+                            {/* 비밀번호 찾기 잠시 숨김처리 */}
+                            {/* <div className="text-left text-xs">
                                 <Link href="/reset-password">
                                     <span className="text-sm text-[#02F5D0] hover:brightness-75">Forgot Password?</span>
                                 </Link>
-                            </div>
+                            </div> */}
                         </div>
 
                         <div className="space-y-4 pt-2">

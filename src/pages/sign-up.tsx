@@ -255,6 +255,13 @@ export default function SignUpPage() {
 
     const isPasswordMatching = formData.password && formData.password === formData.confirmPassword;
 
+    const isFormValid =
+        emailVerified === true &&
+        nickVerified === true &&
+        isValidPassword(formData.password) &&
+        isPasswordMatching &&
+        agreements.required;
+
     return (
         <>
             <Head>
@@ -593,7 +600,7 @@ export default function SignUpPage() {
                         </div>
                         <button
                             type="submit"
-                            disabled={submitting}
+                            disabled={submitting || !isFormValid}
                             className="h-11 w-full rounded-xl bg-[#02F5D0] text-sm text-black transition hover:bg-opacity-80 disabled:opacity-60"
                         >
                             {submitting ? 'Registering…' : 'Register'}

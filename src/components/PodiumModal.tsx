@@ -115,9 +115,11 @@ const PodiumModal = ({ isOpen, nickname, message, onClose, onLike }: PodiumModal
                         />
                     </div>
                     <div className="p-4 min-h-[100px]">
-                        <p className="text-[#02F5D0] text-[17px] text-right leading-relaxed whitespace-pre-wrap break-words">
-                            {`“${message?.text}”`}
-                        </p>
+                        <div className="max-h-[180px] overflow-y-auto scrollbar-hide">
+                            <p className="text-[#02F5D0] text-[17px] text-right leading-relaxed whitespace-pre-wrap break-words">
+                                {`“${message?.text}”`}
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>

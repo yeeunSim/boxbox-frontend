@@ -240,7 +240,10 @@ const FanRadioPage = () => {
                                 className={`w-[15px] h-[15px] rounded-[2px] border-2 border-[#02f5d0] flex items-center justify-center cursor-pointer ${
                                     language === code ? 'bg-[#02f5d0]' : ''
                                 }`}
-                                onClick={() => setLanguage(code as 'ko' | 'en')}
+                                onClick={() => {
+                                    setLanguage(code as 'ko' | 'en');
+                                    setMessage(''); // 입력창 초기화
+                                }}
                             >
                                 {language === code && (
                                     <svg
@@ -265,37 +268,44 @@ const FanRadioPage = () => {
                 </div>
 
                 {/* 메시지 박스 */}
-                <textarea
-                    className={`w-full h-[180px] sm:h-[210px] p-4 bg-[#22202A] text-sm sm:text-base resize-none rounded-[15px] placeholder:text-[#5a6570] ${
-                        !isLoggedIn ? 'text-gray-500' : 'text-white'
-                    }`}
-                    placeholder={
-                        isLoggedIn
-                            ? language === 'ko'
-                                ? '한국어로 입력해주세요 😉'
-                                : 'Please type in English only 😉'
-                            : '로그인 후 메시지를 작성할 수 있습니다.'
-                    }
-                    value={message}
-                    onChange={(e) => {
-                        const val = e.target.value;
-
-                        if (language === 'ko') {
-                            // 한국어 모드 → 영어 차단 + 500자 제한
-                            if (/^[ㄱ-ㅎ가-힣\s.,!?'"0-9]*$/.test(val) && val.length <= 500) {
-                                setMessage(val);
-                            }
-                        } else {
-                            // 영어 모드 → 한글 차단 + 500자 제한
-                            if (/^[a-zA-Z\s.,!?'"0-9]*$/.test(val) && val.length <= 500) {
-                                setMessage(val);
-                            }
+                <div className="w-full h-[180px] sm:h-[210px] rounded-[15px] relative">
+                    <textarea
+                        className={`w-full h-full p-4 pr-14 bg-[#22202A] text-sm sm:text-base resize-none rounded-[15px] placeholder:text-[#5a6570] ${
+                            !isLoggedIn ? 'text-gray-500' : 'text-white'
+                        }`}
+                        placeholder={
+                            isLoggedIn
+                                ? language === 'ko'
+                                    ? '한국어로 입력해주세요 😉'
+                                    : 'Please type in English only 😉'
+                                : '로그인 후 메시지를 작성할 수 있습니다.'
                         }
-                    }}
-                    maxLength={500}
-                    readOnly={!isLoggedIn}
-                    onFocus={handleFocus}
-                />
+                        value={message}
+                        onChange={(e) => {
+                            const val = e.target.value;
+
+                            if (language === 'ko') {
+                                // 한국어 모드 → 영어 차단 + 500자 제한
+                                if (/^[ㄱ-ㅎ가-힣\s.,!?'"0-9]*$/.test(val) && val.length <= 500) {
+                                    setMessage(val);
+                                }
+                            } else {
+                                // 영어 모드 → 한글 차단 + 500자 제한
+                                if (/^[a-zA-Z\s.,!?'"0-9]*$/.test(val) && val.length <= 500) {
+                                    setMessage(val);
+                                }
+                            }
+                        }}
+                        maxLength={500}
+                        readOnly={!isLoggedIn}
+                        onFocus={handleFocus}
+                    />
+
+                    {/* ✅ 입력 필드 내부 오른쪽 아래에 표시 */}
+                    <div className="absolute bottom-3 right-4 text-[#444d56] text-[11px] sm:text-xs pointer-events-none">
+                        {message.length} / 500
+                    </div>
+                </div>
 
                 {/* 전송 버튼 */}
                 <div className="flex justify-center mt-4 sm:mt-6">
@@ -314,10 +324,7 @@ const FanRadioPage = () => {
                 title={editingId ? 'Fan Radio updated' : 'Fan Radio sent'}
                 message={
                     createdRadio
-                        ? `#${createdRadio.radioSn} by ${createdRadio.writerNickname}\n“${getPreview(
-                              language === 'ko' ? createdRadio.radioTextKor : createdRadio.radioTextEng,
-                              50
-                          )}”`
+                        ? `#${createdRadio.radioSn} by ${createdRadio.writerNickname}`
                         : 'See it in the special frame ✨'
                 }
                 primaryText="Show me"
@@ -338,6 +345,7 @@ const FanRadioPage = () => {
                     setMessage('');
                 }}
             />
+
             {/* 이탈 확인 모달 */}
             <Modal
                 isOpen={showLeaveModal}

@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import html2canvas from 'html2canvas';
+import { saveAs } from 'file-saver';
 
 type Message = {
     id: number;
@@ -28,13 +29,16 @@ const PodiumModal = ({ isOpen, nickname, message, onClose, onLike }: PodiumModal
 
         html2canvas(target, {
             scale: 2,
-            backgroundColor: null,
-            useCORS: true, // CORS 허용 옵션
+            // 캡처 시 배경이 투명하게 나온다면 아래 줄의 주석을 해제
+            // backgroundColor: '#191922',
+            useCORS: true,
         }).then((canvas) => {
-            const link = document.createElement('a');
-            link.href = canvas.toDataURL('image/png');
-            link.download = `radio-card-${message.id}.png`;
-            link.click();
+            // canvas를 blob 객체로 변환하여 다운로드
+            canvas.toBlob((blob) => {
+                if (blob) {
+                    saveAs(blob, `radio-card-${message.id}.png`);
+                }
+            });
         });
     };
 

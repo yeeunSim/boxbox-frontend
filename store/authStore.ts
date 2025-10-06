@@ -61,7 +61,7 @@ export const useAuthStore = create<State>()(
                 return headers;
             },
 
-            isAuthed: () => !!get().accessToken && !!get().user,
+            isAuthed: () => !!get().user,
         }),
         {
             name: 'app-auth', // storage 키

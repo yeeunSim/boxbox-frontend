@@ -99,7 +99,7 @@ const MyPage = () => {
                     <main className="flex-1 flex flex-col items-center justify-center text-center">
                         <button onClick={() => setCharacter((prev) => (prev === 'female' ? 'male' : 'female'))}>
                             <Image
-                                src={`/icons/character-${character}.svg`}
+                                src={`/icons/petronas-${character}.svg`}
                                 alt={`${character} character`}
                                 width={250}
                                 height={370}

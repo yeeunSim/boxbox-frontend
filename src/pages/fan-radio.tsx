@@ -25,7 +25,7 @@ const FanRadioPage = () => {
         '“Language detection is done manually. 🛠️\nFor smoother translation please write only in your selected language. 🥹”',
     ];
 
-    const [bannerItems, setBannerItems] = useState<string[]>(defaultBanners);
+    const [bannerItems] = useState<string[]>(defaultBanners);
 
     const [message, setMessage] = useState('');
     const [language, setLanguage] = useState<'ko' | 'en'>('ko');
@@ -43,21 +43,6 @@ const FanRadioPage = () => {
     // 미리보기 유틸
     const getPreview = (text: string, limit = 50) => (text.length > limit ? text.slice(0, limit) + '...' : text);
 
-    useEffect(() => {
-        const fetchBannerData = async () => {
-            const driverRadios = await fanRadioAPI.getDriverNumberRadios();
-            if (driverRadios && driverRadios.length > 0) {
-                const formattedApiBanners = driverRadios.map(
-                    (radio) => `#${radio.radioSn} Message by ${radio.radioNickname}\n“${radio.radioTextEng}”`
-                );
-                setBannerItems([...defaultBanners, ...formattedApiBanners]);
-            } else {
-                setBannerItems(defaultBanners);
-            }
-        };
-        fetchBannerData();
-    }, []); // lang 의존성 제거
-
     /** 전송 진행 상태 & 서버 응답 저장 */
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [createdRadio, setCreatedRadio] = useState<{
@@ -74,25 +59,6 @@ const FanRadioPage = () => {
         if (editId) setEditingId(Number(editId));
         if (editText) setMessage(String(editText));
     }, [router.isReady, router.query]);
-    //페이지 로드 시 '드라이버 넘버' 라디오를 가져오는 useEffect를 추가
-    useEffect(() => {
-        const fetchBannerData = async () => {
-            const driverRadios = await fanRadioAPI.getDriverNumberRadios();
-
-            if (driverRadios && driverRadios.length > 0) {
-                // API로부터 받은 데이터를 배너 텍스트 형식으로 변환
-                const formattedApiBanners = driverRadios.map(
-                    (radio) => `#${radio.radioSn} Message by ${radio.radioNickname}\n“${radio.radioTextEng}”`
-                );
-
-                // 기본 안내 문구 뒤에 API 배너를 추가하여 상태를 업데이트
-                setBannerItems([...defaultBanners, ...formattedApiBanners]);
-            }
-            // 데이터가 없으면, 상태는 defaultBanners로 유지
-        };
-
-        fetchBannerData();
-    }, []); // 최초 1회만 실행
 
     //  텍스트 입력 시도 시 로그인 모달을 띄우는 함수
     const handleFocus = () => {

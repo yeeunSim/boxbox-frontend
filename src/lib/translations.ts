@@ -1,12 +1,6 @@
-export const translations = {
-    ko: {
-        // 팬라디오 페이지 (기본 배너)
-        banner1: '“환영 메시지를 입력해주세요 💌\n보타스가 실제로 읽을 수도 있어요 👀”',
-        banner2: '“가장 좋아하는 드라이버에게 메시지를 보내세요 💬\n피트워크에 확실히 전달해 드릴게요 🛠️”',
-    },
-    en: {
-        // Fan Radio Page (Default Banners)
-        banner1: '“TYPE YOUR WELCOME NOTE HERE 💌 COULD BE THE ONE BOTTAS ACTUALLY READS 👀”',
-        banner2: '“SEND A MESSAGE TO YOUR FAVORITE DRIVER 💬 AND WE’LL MAKE SURE IT HITS THE PIT WALL 🛠️”',
-    },
-};
+const ko = {
+  banner1: '“언어 감지를 수동으로 진행하고 있습니다. 🛠️\n정확한 번역을 위해 선택하신 언어로만 작성해 주세요. 🥹”',
+  banner2: '“Language detection is done manually. 🛠️\nFor smoother translationplease write only in your selected language. 🥹”',
+} as const;
+
+export const translations = { ko, en: ko } as const;

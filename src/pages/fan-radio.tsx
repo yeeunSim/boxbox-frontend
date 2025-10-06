@@ -1,4 +1,4 @@
-// src/pages/fan-radio.tsx
+// src/pages/fan-radio.tsx (원래 성공 모달 로직 복구 및 적용)
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -12,13 +12,13 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/pagination';
-import { fanRadioAPI } from '@/apis/fanradioAPI';
+import { fanRadioAPI, RadioData } from '@/apis/fanradioAPI'; // RadioData 타입 임포트
 
 const FanRadioPage = () => {
     const isLoggedIn = useAuthStore((s) => s.isAuthed());
     const openLoginModal = useUiStore((s) => s.openLoginModal);
     const router = useRouter();
-    const lang = useAuthStore((state) => state.lang);
+    const lang = useAuthStore((state) => state.lang); // 현재는 사용되지 않음
 
     const defaultBanners = [
         '“언어 감지를 수동으로 진행하고 있습니다. 🛠️\n정확한 번역을 위해 선택하신 언어로만 작성해 주세요. 🥹”',
@@ -29,7 +29,8 @@ const FanRadioPage = () => {
 
     const [message, setMessage] = useState('');
     const [language, setLanguage] = useState<'ko' | 'en'>('ko');
-    const [modalOpen, setModalOpen] = useState(false);
+    // 🌟 원래 사용하던 modalOpen 상태 복구
+    const [modalOpen, setModalOpen] = useState(false); 
     const [isLimitModalOpen, setLimitModalOpen] = useState(false);
 
     const [showLeaveModal, setShowLeaveModal] = useState(false);
@@ -45,12 +46,8 @@ const FanRadioPage = () => {
 
     /** 전송 진행 상태 & 서버 응답 저장 */
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [createdRadio, setCreatedRadio] = useState<{
-        radioSn: number;
-        radioTextKor: string;
-        radioTextEng: string;
-        writerNickname: string;
-    } | null>(null);
+    // 🌟 createdRadio 상태에 RadioData 타입 적용
+    const [createdRadio, setCreatedRadio] = useState<RadioData | null>(null); 
 
     // URL 파라미터(editId, editText)로 수정 모드 진입
     useEffect(() => {
@@ -60,7 +57,7 @@ const FanRadioPage = () => {
         if (editText) setMessage(String(editText));
     }, [router.isReady, router.query]);
 
-    //  텍스트 입력 시도 시 로그인 모달을 띄우는 함수
+    //  텍스트 입력 시도 시 로그인 모달을 띄우는 함수
     const handleFocus = () => {
         if (!isLoggedIn) openLoginModal();
     };
@@ -115,9 +112,10 @@ const FanRadioPage = () => {
                 ? await fanRadioAPI.patchRadio(editingId, payload)
                 : await fanRadioAPI.postRadio(payload);
 
-            // 성공적으로 생성/수정되면 모달 오픈 & 응답 저장
+            // 🌟 성공적으로 생성/수정되면 상태 저장 및 모달 열기
             setCreatedRadio(res.data);
             setModalOpen(true);
+            
         } catch (e: any) {
             const error = e as AxiosError;
             if (error.response?.status === 409) {
@@ -130,6 +128,33 @@ const FanRadioPage = () => {
             setIsSubmitting(false);
         }
     };
+
+    // 🌟 모달의 Primary 버튼 (Show me) 클릭 핸들러
+    const handleSuccessPrimaryClick = () => {
+        setModalOpen(false); // 모달 닫기
+
+        if (createdRadio) {
+            // 마이페이지로 전달할 메시지 결정 (한국어 or 영어)
+            const msg =
+                language === 'ko'
+                    ? createdRadio.radioTextKor
+                    : createdRadio.radioTextEng;
+            
+            setMessage(''); // 메시지 입력 필드 초기화
+            confirmedNavigation.current = true; // 페이지 이동 허용
+
+            // 🌟 마이페이지로 이동 및 쿼리 파라미터 전달
+            router.push(`/my-page?modal=fan-radio&message=${encodeURIComponent(msg)}`);
+        }
+        // createdRadio가 없으면 아무 일도 하지 않음 (모달만 닫음)
+    };
+    
+    // 🌟 모달의 Secondary 버튼 (Close) 클릭 핸들러
+    const handleSuccessSecondaryClick = () => {
+        setModalOpen(false);
+        setMessage(''); // 메시지 입력 필드 초기화
+    };
+
 
     return (
         <div className="w-full max-w-md mx-auto px-4 min-h-screen overflow-y-auto pt-[70px] pb-[80px]">
@@ -158,7 +183,7 @@ const FanRadioPage = () => {
                     className="w-full h-auto object-contain"
                 />
 
-                {/*  배너 */}
+                {/*  배너 */}
                 <div className="relative">
                     <Swiper
                         modules={[Pagination]}
@@ -248,16 +273,8 @@ const FanRadioPage = () => {
                         onChange={(e) => {
                             const val = e.target.value;
 
-                            if (language === 'ko') {
-                                // 한국어 모드 → 영어 차단 + 500자 제한
-                                if (/^[ㄱ-ㅎ가-힣\s.,!?'"0-9]*$/.test(val) && val.length <= 500) {
-                                    setMessage(val);
-                                }
-                            } else {
-                                // 영어 모드 → 한글 차단 + 500자 제한
-                                if (/^[a-zA-Z\s.,!?'"0-9]*$/.test(val) && val.length <= 500) {
-                                    setMessage(val);
-                                }
+                            if (val.length <= 500) {
+                                setMessage(val);
                             }
                         }}
                         maxLength={500}
@@ -282,7 +299,24 @@ const FanRadioPage = () => {
                     </button>
                 </div>
             </div>
+            
+            {/* 🌟 1. 전송 성공 모달 (원래 로직으로 복구) */}
+            <Modal
+                isOpen={modalOpen} // modalOpen 상태 사용
+                title={editingId ? 'Fan Radio updated' : 'Fan Radio sent'}
+                message={
+                    createdRadio
+                        ? `#${createdRadio.radioSn} by ${createdRadio.writerNickname}`
+                        : 'See it in the special frame ✨'
+                }
+                primaryText="Show me"
+                secondaryText="Close"
+                icon={createdRadio ? <span>🚀</span> : <span>✨</span>} // 아이콘 추가
+                onPrimary={handleSuccessPrimaryClick} // 마이페이지 이동
+                onSecondary={handleSuccessSecondaryClick} // 모달 닫기 및 메시지 초기화
+            />
 
+            {/* 2. 언어 변경 확인 모달 */}
             <Modal
                 isOpen={showLangChangeModal}
                 title="Change language?"
@@ -303,7 +337,7 @@ const FanRadioPage = () => {
                 }}
             />
 
-            {/* 이탈 확인 모달 */}
+            {/* 3. 이탈 확인 모달 */}
             <Modal
                 isOpen={showLeaveModal}
                 title="Leave this page?"
@@ -313,6 +347,8 @@ const FanRadioPage = () => {
                 onPrimary={handleConfirmLeave}
                 onSecondary={handleCancelLeave}
             />
+            
+            {/* 4. 전송 횟수 제한 모달 */}
             <Modal
                 isOpen={isLimitModalOpen}
                 title="Message Limit Reached"

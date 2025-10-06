@@ -45,10 +45,10 @@ export default function LoginPage() {
             const code = ax.response?.data?.code;
             const msg = ax.response?.data?.message ?? ax.message ?? '로그인 중 오류가 발생했어요.';
 
-            if (code === 'USER_NOT_FOUND' || ax.response?.status === 404) {
+            if (code === 'USER_NOT_FOUND' || ax.response?.status === 404 || ax.response?.status === 401) {
                 setModalTitle('Account not found');
-                setModalMsg('해당 이메일로 가입된 계정을 찾을 수 없어요. 회원가입을 진행해 주세요.');
-                setSecondaryText('Go to Sign up');
+                setModalMsg('이메일이나 비밀번호가 틀렸습니다.');
+                setSecondaryText('Sign up');
                 setOnSecondary(() => () => router.push('/sign-up'));
             } else {
                 setModalTitle('Login Failed');

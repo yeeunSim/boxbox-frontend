@@ -517,7 +517,7 @@ export default function SignUpPage() {
                                 </div>
                             </Listbox>
                         </div>
-                        {/* 약관 */}ㄴ
+                        {/* 약관 */}
                         <div className="space-y-2.5 rounded-2xl border border-[#02F5D0] bg-[#18191B] p-3">
                             <label
                                 onClick={(e) => handleAgreementClick(e, 'all')}

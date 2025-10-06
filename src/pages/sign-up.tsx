@@ -173,13 +173,16 @@ export default function SignUpPage() {
 
                 if (status === 409) {
                     setNickVerified(false);
-                    alert('이미 사용 중인 닉네임입니다.');
+                    setModalMsg('이미 사용 중인 닉네임입니다.');
+                    setShowModal(true);
                 } else if (status === 400) {
                     setNickVerified(false);
-                    alert('형식이 맞지 않는 닉네임입니다.');
+                    setModalMsg('형식이 맞지 않는 닉네임입니다.');
+                    setShowModal(true);
                 } else {
                     setNickVerified(false);
-                    alert(msg || '닉네임 확인 중 오류가 발생했어요.');
+                    setModalMsg(msg || '닉네임 확인 중 오류가 발생했어요.');
+                    setShowModal(true);
                 }
             } else {
                 // Axios 외 에러
@@ -210,8 +213,17 @@ export default function SignUpPage() {
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        if (emailVerified !== true) return alert('이메일 중복확인을 완료해 주세요.');
-        if (nickVerified !== true) return alert('닉네임 중복확인을 완료해 주세요.');
+        if (emailVerified !== true) {
+            setModalMsg('이메일 중복확인을 완료해 주세요.');
+            setShowModal(true);
+            return;
+        }
+
+        if (nickVerified !== true) {
+            setModalMsg('닉네임 중복확인을 완료해 주세요.');
+            setShowModal(true);
+            return;
+        }
 
         if (formData.password !== formData.confirmPassword) {
             setModalMsg('비밀번호가 일치하지 않습니다.');
@@ -275,7 +287,7 @@ export default function SignUpPage() {
             <Head>
                 <title>Sign Up - Box Box</title>
             </Head>
-            <main className="flex min-h-screen items-center justify-center bg-black font-['Formula1']">
+            <main className="flex min-h-screen items-center justify-center bg-black">
                 <div
                     className="relative flex h-screen w-full max-w-[430px] items-center justify-center bg-cover bg-center"
                     style={{ backgroundImage: "url('/images/intro-bg.svg')" }}

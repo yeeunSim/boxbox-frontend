@@ -26,7 +26,11 @@ const PodiumModal = ({ isOpen, nickname, message, onClose, onLike }: PodiumModal
         const target = document.getElementById(`radio-card-podium-${message.id}`);
         if (!target) return;
 
-        html2canvas(target, { scale: 2, backgroundColor: null }).then((canvas) => {
+        html2canvas(target, {
+            scale: 2,
+            backgroundColor: null,
+            useCORS: true, // CORS 허용 옵션
+        }).then((canvas) => {
             const link = document.createElement('a');
             link.href = canvas.toDataURL('image/png');
             link.download = `radio-card-${message.id}.png`;

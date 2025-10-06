@@ -19,10 +19,10 @@ export type SignUpParams = {
     loginEmail: string;
     loginPw: string;
     userNickname: string;
-    userBirth: string; // 'YYYY-MM-DD'
-    userGender: 'M' | 'F' | 'N' | ''; // 남:M, 여:F, 선택안함:N(혹은 '')
+    userBirth: string | null;
+    userGender: 'M' | 'F' | 'N' | null; // 남:M, 여:F, 선택안함:N(혹은 '')
     svcUsePcyAgmtYn: 'Y' | 'N'; // 서비스 이용 약관(필수)
-    psInfoProcAgmtYn: 'Y' | 'N'; // 개인정보 처리 동의(선택)
+    psInfoProcAgmtYn: 'Y' | 0; // 개인정보 처리 동의(선택)
 };
 
 export const signUpAPI = {

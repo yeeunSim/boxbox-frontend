@@ -47,3 +47,8 @@ body {
         scrollbar-width: none;
     }
 }
+/* 기본 비밀번호 보기 아이콘 숨기기 (Edge, IE) */
+input[type='password']::-ms-reveal,
+input[type='password']::-ms-clear {
+    display: none;
+}

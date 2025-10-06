@@ -43,7 +43,11 @@ const MyPageModal = ({ isOpen, nickname, messages = [], initialSlide = 0, onClos
         const target = cardRefs.current[activeIndex];
         if (!target) return;
 
-        html2canvas(target, { scale: 2, backgroundColor: null }).then((canvas) => {
+        html2canvas(target, {
+            scale: 2,
+            backgroundColor: null,
+            useCORS: true, // CORS 허용 옵션 추가
+        }).then((canvas) => {
             const link = document.createElement('a');
             link.href = canvas.toDataURL('image/png');
             link.download = `radio-card-${messages[activeIndex].id}.png`;
@@ -71,7 +75,6 @@ const MyPageModal = ({ isOpen, nickname, messages = [], initialSlide = 0, onClos
                 onClick={(e) => e.stopPropagation()}
             >
                 {messages.length > 0 ? (
-                    // --- 1. 메시지가 있을 경우: 기존 Swiper UI ---
                     <>
                         <div className="flex justify-between items-center mb-3">
                             <div className="flex gap-3 translate-x-4">
@@ -139,12 +142,11 @@ const MyPageModal = ({ isOpen, nickname, messages = [], initialSlide = 0, onClos
                                                     className="w-full h-auto object-contain -mt-1.5"
                                                 />
                                             </div>
-                                            {/* ✅ 2. 텍스트 컨테이너가 자연스럽게 파형 바로 아래에 위치하고, 내용에 따라 높이가 조절됩니다. */}
+
                                             <div className="p-4 pt-0">
                                                 <p className="text-[#02F5D0] text-[17px] text-right leading-relaxed whitespace-pre-wrap break-words">{`“${msg.text}”`}</p>
                                             </div>
 
-                                            {/* ✅ 3. 페이지네이션 닷을 카드 내부에, absolute로 위치시킵니다. */}
                                             <div className="absolute bottom-4 left-0 right-0 z-10 flex justify-center items-center gap-[6px]">
                                                 {messages.map((_, dotIndex) => (
                                                     <div
@@ -156,7 +158,6 @@ const MyPageModal = ({ isOpen, nickname, messages = [], initialSlide = 0, onClos
                                                 ))}
                                             </div>
 
-                                            {/* 카드의 하단 여백을 위한 공간 확보용 div */}
                                             <div className="h-10" />
                                         </div>
                                     </SwiperSlide>

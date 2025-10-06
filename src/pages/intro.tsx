@@ -1,34 +1,90 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 
+// 사운드 파일 경로 (public 폴더 기준) - 경로를 꼭 확인해주세요.
+const INTRO_SOUND_PATH = '/sounds/f1-boxbox.mp3';
+
+// 🌟 볼륨 설정: 0.8로 설정하여 살짝 줄임 (0.0 ~ 1.0 사이 값)
+const SOUND_VOLUME = 0.8; 
+
 const IntroPage = () => {
-    const [step, setStep] = useState(0);
+    const [step, setStep] = useState(0); // 0: 초기, 1: 모달 등장, 2: 모달 확장
+    const [isStarted, setIsStarted] = useState(false); // 애니메이션 시작 여부 플래그
     const router = useRouter();
 
-    useEffect(() => {
-        // 1.5초 후에 모달 등장
-        const timer1 = setTimeout(() => setStep(1), 1500);
+    // 오디오 객체 및 타이머 ID를 useRef로 안전하게 관리
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+    const timerRefs = useRef<number[]>([]);
+
+    // 💡 startIntroSequence: 클릭 시 실행되는 핵심 로직
+    const startIntroSequence = useCallback(() => {
+        // 이미 시작된 경우 중복 실행 방지
+        if (isStarted) return; 
+        
+        // 시작 상태로 변경
+        setIsStarted(true);
+        
+        // 1. 오디오 객체 준비 및 재생 함수 정의
+        if (typeof window !== 'undefined' && audioRef.current === null) {
+            audioRef.current = new Audio(INTRO_SOUND_PATH);
+            // 🌟 수정된 부분: 오디오 객체 생성 시 볼륨 설정
+            audioRef.current.volume = SOUND_VOLUME; 
+        }
+        
+        const playSound = () => {
+            if (audioRef.current) {
+                // 사운드가 처음부터 재생되도록 초기화
+                audioRef.current.currentTime = 0; 
+                audioRef.current.play().catch(error => {
+                    // 브라우저 자동 재생 정책으로 인한 에러 처리
+                    console.error("Audio playback failed (Autoplay policy may block it):", error);
+                });
+            }
+        };
+
+        // 2. 타이머 설정 (모든 타이머 로직이 여기에 있습니다)
+        
+        // 1.5초 후에 모달 등장 및 사운드 재생
+        // window.setTimeout을 사용하여 Next.js 환경에서도 타입 오류 방지
+        const timer1 = window.setTimeout(() => {
+            setStep(1);
+            playSound(); // 모달 등장과 동시에 효과음 재생
+        }, 1500);
+
         // 3초 후에 모달 확장
-        const timer2 = setTimeout(() => setStep(2), 3000);
+        const timer2 = window.setTimeout(() => setStep(2), 3000);
+
         // 4.5초 후에 홈 화면으로 이동
-        const timer3 = setTimeout(() => {
-            // 인트로를 봤다는 사실을 세션 스토리지에 기록
+        const timer3 = window.setTimeout(() => {
             sessionStorage.setItem('seenIntro', 'true');
             router.push('/');
         }, 4500);
+        
+        // 타이머 ID 저장 (클린업을 위해)
+        timerRefs.current = [timer1, timer2, timer3];
 
+    }, [isStarted, router]);
+    
+    // 💡 useEffect: 컴포넌트 언마운트 시 타이머만 정리
+    useEffect(() => {
         return () => {
-            clearTimeout(timer1);
-            clearTimeout(timer2);
-            clearTimeout(timer3);
+            // 저장된 모든 타이머 정리
+            timerRefs.current.forEach(clearTimeout);
+            
+            // 오디오 재생 중지 (필요하다면)
+            if (audioRef.current) {
+                audioRef.current.pause();
+            }
         };
-    }, [router]);
+    }, []); // 빈 배열: 컴포넌트 마운트 시 한 번만 실행 및 언마운트 시 정리
 
     return (
         <div className="min-h-screen w-full bg-[#191922]">
             <main
-                className="relative flex h-screen w-full max-w-[430px] mx-auto flex-col items-center justify-center bg-black font-['Formula1'] bg-center bg-cover"
+                // 🌟 핵심 수정: isStarted가 false일 때만 클릭 핸들러 작동
+                onClick={!isStarted ? startIntroSequence : undefined}
+                className="relative flex h-screen w-full max-w-[430px] mx-auto flex-col items-center justify-center bg-black font-['Formula1'] bg-center bg-cover cursor-pointer"
                 style={{ backgroundImage: "url('/images/intro-bg.svg')" }}
             >
                 <div
@@ -37,8 +93,14 @@ const IntroPage = () => {
                     }`}
                 />
 
-                {/* 음표 아이콘  */}
+                {/* 음표 아이콘 (클릭 유도) */}
                 <div className={`transition-opacity duration-500 ${step === 0 ? 'opacity-100' : 'opacity-0'}`}>
+                    {/* 🌟 클릭 유도 텍스트 추가: 시작 전 상태일 때만 표시 */}
+                    {!isStarted && (
+                        <div className="text-white text-lg font-bold absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 mt-20 animate-pulse text-center">
+                            Touch to <br/> Start Radio
+                        </div>
+                    )}
                     <Image src="/icons/music.svg" alt="Music" width={80} height={80} />
                 </div>
 
@@ -80,9 +142,8 @@ const IntroPage = () => {
                                 className="text-white text-[16px] text-left leading-relaxed"
                                 style={{ textShadow: '0px 1px 3px rgba(104, 255, 249, 0.30)' }}
                             >
-                                “WATING FOR
-                                <br />
-                                TEAM ORDER”
+                                “WAITING FOR
+                                <br/>TEAM ORDER”
                             </p>
                         </div>
 

@@ -56,7 +56,7 @@ const MainPage = () => {
     return (
         <div className="w-full max-w-md mx-auto pt-[66px] sm:pt-[72px]">
             {/* D-Day  */}
-            <div className="relative w-[393px] h-[102px] bg-[#111111] rounded-b-[30px] mx-auto">
+            <div className="relative w-full h-[102px] bg-[#111111] rounded-b-[30px] mx-auto">
                 <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center text-white">
                     <p className="text-[12px]  tracking-[0.5px] mt-1">PEACHES X F1 MERCEDES AMG</p>
                     {/* diffDays가 계산되기 전에는 로딩 상태를 보여줄 수 있습니다. */}

@@ -120,23 +120,27 @@ const PodiumPage = () => {
             return;
         }
 
-        setDisplayedUsers(prev => prev.map(u => (u.id === id ? applyToggle(u) : u)));
-        setSelectedUser(prev => (prev?.id === id ? applyToggle(prev) : prev));
+        setDisplayedUsers((prev) => prev.map((u) => (u.id === id ? applyToggle(u) : u)));
+        setSelectedUser((prev) => (prev?.id === id ? applyToggle(prev) : prev));
 
         try {
             const resp = await podiumAPI.likePodiumPost(id);
             const ok = !!resp && typeof resp.isLiked === 'boolean' && typeof resp.likes === 'number';
             if (ok) {
-                setDisplayedUsers(prev => prev.map(u => (u.id === id ? { ...u, isLiked: resp!.isLiked, likes: resp!.likes } : u)));
-                setSelectedUser(prev => (prev?.id === id ? { ...prev, isLiked: resp!.isLiked, likes: resp!.likes } : prev));
+                setDisplayedUsers((prev) =>
+                    prev.map((u) => (u.id === id ? { ...u, isLiked: resp!.isLiked, likes: resp!.likes } : u))
+                );
+                setSelectedUser((prev) =>
+                    prev?.id === id ? { ...prev, isLiked: resp!.isLiked, likes: resp!.likes } : prev
+                );
             } else {
-                setDisplayedUsers(prev => prev.map(u => (u.id === id ? applyToggle(u) : u)));
-                setSelectedUser(prev => (prev?.id === id ? applyToggle(prev) : prev));
+                setDisplayedUsers((prev) => prev.map((u) => (u.id === id ? applyToggle(u) : u)));
+                setSelectedUser((prev) => (prev?.id === id ? applyToggle(prev) : prev));
                 alert('좋아요 처리에 실패했습니다.');
             }
         } catch {
-            setDisplayedUsers(prev => prev.map(u => (u.id === id ? applyToggle(u) : u)));
-            setSelectedUser(prev => (prev?.id === id ? applyToggle(prev) : prev));
+            setDisplayedUsers((prev) => prev.map((u) => (u.id === id ? applyToggle(u) : u)));
+            setSelectedUser((prev) => (prev?.id === id ? applyToggle(prev) : prev));
             alert('좋아요 처리에 실패했습니다.');
         }
     };
@@ -270,9 +274,9 @@ const PodiumPage = () => {
                                             </span>
                                         </div>
                                     </div>
-                                    <div className="flex flex-col items-center gap-0.5">
+                                    <div className="flex flex-col items-center gap-0.5 w-[32px]">
                                         <Image src="/icons/likes.svg" alt="Likes" width={16} height={16} />
-                                        <span className="text-xs text-gray-300">{user.likes}</span>
+                                        <span className="text-xs text-gray-300 text-center w-full">{user.likes}</span>
                                     </div>
                                 </li>
                             );

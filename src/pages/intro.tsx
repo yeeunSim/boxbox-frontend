@@ -12,7 +12,11 @@ const IntroPage = () => {
         // 3초 후에 모달 확장
         const timer2 = setTimeout(() => setStep(2), 3000);
         // 4.5초 후에 홈 화면으로 이동
-        const timer3 = setTimeout(() => router.push('/'), 4500);
+        const timer3 = setTimeout(() => {
+            // 인트로를 봤다는 사실을 세션 스토리지에 기록
+            sessionStorage.setItem('seenIntro', 'true');
+            router.push('/');
+        }, 4500);
 
         return () => {
             clearTimeout(timer1);

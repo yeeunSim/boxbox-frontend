@@ -44,19 +44,21 @@ const MyPageModal = ({ isOpen, nickname, messages = [], initialSlide = 0, onClos
         const target = cardRefs.current[activeIndex];
         if (!target) return;
 
-        html2canvas(target, {
-            scale: 2,
-            // 캡처 시 배경이 투명하게 나온다면 아래 줄의 주석을 해제
-            // backgroundColor: '#191922',
-            useCORS: true,
-        }).then((canvas) => {
-            // canvas를 blob 객체로 변환하여 다운로드
-            canvas.toBlob((blob) => {
-                if (blob) {
-                    saveAs(blob, `radio-card-${messages[activeIndex].id}.png`);
-                }
+        // 0.3초 지연 후 캡처를 실행하여 렌더링 시간을 확보
+        setTimeout(() => {
+            html2canvas(target, {
+                scale: 2,
+                // 배경색을 명확하게 지정하여 투명해지는 것을 방지
+                backgroundColor: '#191922',
+                useCORS: true,
+            }).then((canvas) => {
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        saveAs(blob, `radio-card-${messages[activeIndex].id}.png`);
+                    }
+                });
             });
-        });
+        }, 300);
     };
 
     const currentMessage = messages[activeIndex] || messages[0];

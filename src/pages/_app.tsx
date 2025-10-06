@@ -10,6 +10,7 @@ import BottomNav from '@/components/BottomNav';
 import Modal from '@/components/Modal';
 import { useAuthStore, useUiStore } from '../../store/authStore';
 import http from '@/apis/axiosConfig';
+import VhSetter from '@/components/VhSetter';
 
 type NextPageWithLayout = NextPage & {
     title?: string;
@@ -95,6 +96,8 @@ function AppContent({ Component, pageProps }: AppPropsWithLayout) {
 
     return (
         <>
+            <VhSetter />
+
             {hideLayout ? (
                 <div className="font-formula1">
                     <Component {...pageProps} />
@@ -106,7 +109,11 @@ function AppContent({ Component, pageProps }: AppPropsWithLayout) {
                     <main className="flex-grow">
                         <Component {...pageProps} />
                     </main>
-                    <BottomNav />
+                    
+                    {/* ✅ BottomNav는 sticky가 모바일 키보드/주소창 변동에 더 안전 */}
+                    <div className="sticky bottom-0 pb-[env(safe-area-inset-bottom)]">
+                        <BottomNav />
+                    </div>
                 </div>
             )}
             <Modal

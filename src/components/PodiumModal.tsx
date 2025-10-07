@@ -27,12 +27,25 @@ const PodiumModal = ({ isOpen, nickname, message, onClose, onLike }: PodiumModal
         const target = document.getElementById(`radio-card-podium-${message.id}`);
         if (!target) return;
 
+        // 텍스트 박스 찾기
+        const textBox = target.querySelector('.radio-text-box') as HTMLElement | null;
+        const originalMaxHeight = textBox?.style.maxHeight;
+        const originalOverflow = textBox?.style.overflow;
+
+        // 캡처 전에 실제 DOM 수정
+        if (textBox) {
+            textBox.style.maxHeight = 'none';
+            textBox.style.overflow = 'visible';
+        }
+
         setTimeout(() => {
             html2canvas(target, {
                 scale: 2,
                 backgroundColor: '#191922',
                 useCORS: true,
+                scrollY: -window.scrollY, // iOS Safari 보정
                 onclone: (clonedDoc) => {
+                    // 기존 보정 코드
                     const iconGroup = clonedDoc.querySelector('.translate-x-4') as HTMLElement;
                     if (iconGroup) iconGroup.style.transform = 'none';
 
@@ -48,14 +61,20 @@ const PodiumModal = ({ isOpen, nickname, message, onClose, onLike }: PodiumModal
                         radioText.style.top = '-14px';
                     }
 
-                    // 텍스트 박스 스크롤 해제
-                    const textBox = clonedDoc.querySelector('.radio-text-box') as HTMLElement;
-                    if (textBox) {
-                        textBox.style.maxHeight = 'none';
-                        textBox.style.overflow = 'visible';
+                    // 클론된 DOM에서도 스크롤 해제
+                    const clonedTextBox = clonedDoc.querySelector('.radio-text-box') as HTMLElement;
+                    if (clonedTextBox) {
+                        clonedTextBox.style.maxHeight = 'none';
+                        clonedTextBox.style.overflow = 'visible';
                     }
                 },
             }).then((canvas) => {
+                // 캡처 후 원상복구
+                if (textBox) {
+                    textBox.style.maxHeight = originalMaxHeight || '';
+                    textBox.style.overflow = originalOverflow || '';
+                }
+
                 canvas.toBlob((blob) => {
                     if (blob) {
                         saveAs(blob, `radio-card-${message.id}.png`);
@@ -121,7 +140,7 @@ const PodiumModal = ({ isOpen, nickname, message, onClose, onLike }: PodiumModal
                         />
                     </div>
                     <div className="p-4 min-h-[100px]">
-                        {/* 스크롤 + 다운로드 시 전체 출력 가능 */}
+                        {/*  실제 모달은 스크롤 가능 */}
                         <div className="radio-text-box max-h-[180px] overflow-y-auto scrollbar-hide">
                             <p className="text-[#02F5D0] text-[17px] text-right leading-relaxed whitespace-pre-wrap break-words">
                                 {`“${message?.text}”`}

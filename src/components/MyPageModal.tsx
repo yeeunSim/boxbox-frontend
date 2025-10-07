@@ -21,7 +21,6 @@ export interface MyPageModalProps {
     messages: Message[];
     initialSlide?: number;
     onClose: () => void;
-
     onDelete: (id: number) => void;
 }
 
@@ -44,13 +43,23 @@ const MyPageModal = ({ isOpen, nickname, messages = [], initialSlide = 0, onClos
         const target = cardRefs.current[activeIndex];
         if (!target) return;
 
+        // 실제 DOM의 텍스트 박스를 풀어줌 (모바일 대응)
+        const textBox = target.querySelector('.radio-text-box') as HTMLElement | null;
+        const prevMaxHeight = textBox?.style.maxHeight;
+        const prevOverflow = textBox?.style.overflow;
+
+        if (textBox) {
+            textBox.style.maxHeight = 'none';
+            textBox.style.overflow = 'visible';
+        }
+
         setTimeout(() => {
             html2canvas(target, {
                 scale: 2,
                 backgroundColor: '#191922',
                 useCORS: true,
+                scrollY: -window.scrollY, // iOS Safari 보정
                 onclone: (clonedDoc) => {
-                    // HTMLElement로 타입을 명시하여 style 속성 오류를 해결
                     const iconGroup = clonedDoc.querySelector('.translate-x-4') as HTMLElement;
                     if (iconGroup) iconGroup.style.transform = 'none';
 
@@ -65,8 +74,21 @@ const MyPageModal = ({ isOpen, nickname, messages = [], initialSlide = 0, onClos
                         radioText.style.position = 'relative';
                         radioText.style.top = '-14px';
                     }
+
+                    // 클론된 DOM도 스크롤 해제
+                    const clonedTextBox = clonedDoc.querySelector('.radio-text-box') as HTMLElement;
+                    if (clonedTextBox) {
+                        clonedTextBox.style.maxHeight = 'none';
+                        clonedTextBox.style.overflow = 'visible';
+                    }
                 },
             }).then((canvas) => {
+                // 원래 상태 복구
+                if (textBox) {
+                    textBox.style.maxHeight = prevMaxHeight || '180px';
+                    textBox.style.overflow = prevOverflow || 'auto';
+                }
+
                 canvas.toBlob((blob) => {
                     if (blob) {
                         saveAs(blob, `radio-card-${messages[activeIndex].id}.png`);
@@ -165,7 +187,8 @@ const MyPageModal = ({ isOpen, nickname, messages = [], initialSlide = 0, onClos
                                             </div>
 
                                             <div className="p-4 pt-0">
-                                                <div className="max-h-[180px] overflow-y-auto scrollbar-hide">
+                                                {/* 다운로드 때 풀리는 스크롤 박스 */}
+                                                <div className="radio-text-box max-h-[180px] overflow-y-auto scrollbar-hide">
                                                     <p className="text-[#02F5D0] text-[17px] text-right leading-relaxed whitespace-pre-wrap break-words">
                                                         {`“${msg.text}”`}
                                                     </p>
@@ -191,7 +214,6 @@ const MyPageModal = ({ isOpen, nickname, messages = [], initialSlide = 0, onClos
                         </div>
                     </>
                 ) : (
-                    // 메시지가 없을 경우
                     <div className="bg-[#191922] border-2 border-[#02F5D0] rounded-xl mx-auto flex flex-col items-center justify-center gap-6 p-8 min-h-[300px]">
                         <Image src="/icons/radio-btn.svg" alt="No messages" width={64} height={64} />
                         <p className="text-lg  text-center">{"You haven't written any messages yet."}</p>

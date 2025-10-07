@@ -45,8 +45,14 @@ const PodiumModal = ({ isOpen, nickname, message, onClose, onLike }: PodiumModal
                     const radioText = clonedDoc.querySelector('.radio-text') as HTMLElement;
                     if (radioText) {
                         radioText.style.position = 'relative';
-
                         radioText.style.top = '-14px';
+                    }
+
+                    // 텍스트 박스 스크롤 해제
+                    const textBox = clonedDoc.querySelector('.radio-text-box') as HTMLElement;
+                    if (textBox) {
+                        textBox.style.maxHeight = 'none';
+                        textBox.style.overflow = 'visible';
                     }
                 },
             }).then((canvas) => {
@@ -56,7 +62,7 @@ const PodiumModal = ({ isOpen, nickname, message, onClose, onLike }: PodiumModal
                     }
                 });
             });
-        }, 300);
+        }, 100);
     };
 
     return (
@@ -115,7 +121,8 @@ const PodiumModal = ({ isOpen, nickname, message, onClose, onLike }: PodiumModal
                         />
                     </div>
                     <div className="p-4 min-h-[100px]">
-                        <div className="max-h-[180px] overflow-y-auto scrollbar-hide">
+                        {/* 스크롤 + 다운로드 시 전체 출력 가능 */}
+                        <div className="radio-text-box max-h-[180px] overflow-y-auto scrollbar-hide">
                             <p className="text-[#02F5D0] text-[17px] text-right leading-relaxed whitespace-pre-wrap break-words">
                                 {`“${message?.text}”`}
                             </p>

@@ -130,6 +130,16 @@ const MainPage = () => {
                     className="opacity-50 scale-90"
                 />
             </div>
+
+            {/* 문의 메일 */}
+            <div className="w-full text-center mt-6 mb-4">
+                <p className="text-[12px] text-gray-400">
+                    버그 및 사이트 관련 문의:{' '}
+                    <a href="mailto:wjdwlr03@gmail.com" className="underline">
+                        wjdwlr03@gmail.com
+                    </a>
+                </p>
+            </div>
         </div>
     );
 };

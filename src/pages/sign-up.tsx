@@ -1,19 +1,12 @@
-import { useState, FormEvent, ChangeEvent, Fragment } from 'react';
+import { useState, FormEvent, ChangeEvent } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { Listbox, Transition } from '@headlessui/react';
 import Link from 'next/link';
 import { signUpAPI, verifyAPI } from '@/apis/loginAPI';
 import axios, { type AxiosError } from 'axios';
 import Modal from '@/components/Modal';
 
 type ApiErrorBody = { message?: string };
-
-const genderOptions = [
-    { id: 'male', name: 'Male' },
-    { id: 'female', name: 'Female' },
-    { id: 'none', name: 'Prefer not to say' },
-];
 
 export default function SignUpPage() {
     const router = useRouter();
@@ -27,10 +20,7 @@ export default function SignUpPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-    // 상태추가
     const [showRequiredModal, setShowRequiredModal] = useState(false);
-    const [showOptionalModal, setShowOptionalModal] = useState(false);
-    const [agreementTrigger, setAgreementTrigger] = useState<null | 'all' | 'required' | 'optional'>(null);
 
     const [showModal, setShowModal] = useState(false);
     const [modalMsg, setModalMsg] = useState('');
@@ -40,81 +30,29 @@ export default function SignUpPage() {
         password: '',
         confirmPassword: '',
         nickname: '',
-        dateOfBirth: '',
     });
 
-    const [selectedGender, setSelectedGender] = useState<{ id: string; name: string } | null>(null);
-
     const [agreements, setAgreements] = useState({
-        all: false,
         required: false,
-        optional: false,
     });
 
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
-        // 입력 바뀔 때 이전 검증표시 리셋(선택)
         if (name === 'email') setEmailVerified(null);
         if (name === 'nickname') setNickVerified(null);
     };
 
-    // 생년월일 자동 서식 변환
-    const handleDateChange = (e: ChangeEvent<HTMLInputElement>) => {
-        let value = e.target.value.replace(/\D/g, '');
-        if (value.length > 4) value = value.slice(0, 4) + '.' + value.slice(4);
-        if (value.length > 7) value = value.slice(0, 7) + '.' + value.slice(7, 9);
-        setFormData((prev) => ({ ...prev, dateOfBirth: value }));
-    };
-
-    // 버그수정 추가
-    const handleAgreementClick = (e: React.MouseEvent<HTMLLabelElement>, name: 'all' | 'required' | 'optional') => {
-        // 기본 체크박스 동작을 막기
+    // 약관 클릭 → 필수 모달만 열림
+    const handleAgreementClick = (e: React.MouseEvent<HTMLLabelElement>) => {
         e.preventDefault();
-        const isCurrentlyChecked = agreements[name];
-
-        // 이미 체크된 항목을 다시 클릭하면 체크를 해제
-        if (isCurrentlyChecked) {
-            if (name === 'all') {
-                setAgreements({ all: false, required: false, optional: false });
-            } else {
-                setAgreements((prev) => ({ ...prev, [name]: false, all: false }));
-            }
-        } else {
-            // 체크되지 않은 항목을 클릭하면 모달 플로우를 시작
-            setAgreementTrigger(name); // 어떤 버튼으로 시작했는지 기억
-            setShowRequiredModal(true); // 필수 모달
-        }
+        setShowRequiredModal(true);
     };
 
-    // 필수 약관 모달의 '확인' 버튼을 눌렀을 때 실행
+    // 필수 약관 모달 닫으면 자동 체크
     const handleRequiredAgree = () => {
-        setShowRequiredModal(false); // 필수 모달을 닫고
-        setShowOptionalModal(true); // 선택 모달
-    };
-
-    // 선택 약관 모달의 '확인' 버튼을 눌렀을 때 실행
-    const handleOptionalAgree = () => {
-        setShowOptionalModal(false); // 선택 모달을 닫기
-
-        // 어떤 버튼으로 플로우를 시작했는지에 따라 state를 업데이트
-        if (agreementTrigger) {
-            if (agreementTrigger === 'all') {
-                setAgreements({ all: true, required: true, optional: true });
-            } else if (agreementTrigger === 'required') {
-                setAgreements((prev) => ({ ...prev, required: true, all: prev.optional && true }));
-            } else if (agreementTrigger === 'optional') {
-                setAgreements((prev) => ({ ...prev, optional: true, all: prev.required && true }));
-            }
-        }
-        setAgreementTrigger(null); // 트리거 상태를 초기화
-    };
-
-    // 모달 바깥의 어두운 영역을 클릭했을 때 모든 모달을 닫기
-    const closeAllModalsAndReset = () => {
         setShowRequiredModal(false);
-        setShowOptionalModal(false);
-        setAgreementTrigger(null);
+        setAgreements({ required: true });
     };
 
     // 이메일 중복확인
@@ -126,7 +64,7 @@ export default function SignUpPage() {
             setEmailVerifying(true);
             setEmailVerified(null);
 
-            await verifyAPI.checkEmailAvailable(email); // 2xx => 사용 가능
+            await verifyAPI.checkEmailAvailable(email);
             setEmailVerified(true);
             alert('사용 가능한 이메일입니다.');
         } catch (err) {
@@ -145,7 +83,6 @@ export default function SignUpPage() {
                     alert(msg || '이메일 확인 중 오류가 발생했어요.');
                 }
             } else {
-                // Axios 외 에러
                 setEmailVerified(false);
                 alert('알 수 없는 오류가 발생했어요.');
             }
@@ -163,7 +100,7 @@ export default function SignUpPage() {
             setNickVerifying(true);
             setNickVerified(null);
 
-            await verifyAPI.checkNicknameAvailable(nickname); // 2xx => 사용 가능
+            await verifyAPI.checkNicknameAvailable(nickname);
             setNickVerified(true);
             alert('사용 가능한 닉네임입니다.');
         } catch (err) {
@@ -185,7 +122,6 @@ export default function SignUpPage() {
                     setShowModal(true);
                 }
             } else {
-                // Axios 외 에러
                 setNickVerified(false);
                 alert('알 수 없는 오류가 발생했어요.');
             }
@@ -194,21 +130,12 @@ export default function SignUpPage() {
         }
     };
 
-    // 비밀번호 규칙 검증 (8–12, - . / 금지)
+    // 비밀번호 규칙 검증
     const isValidPassword = (pw: string) => {
         if (pw.length < 8 || pw.length > 12) return false;
         if (/[./-]/.test(pw)) return false;
         return true;
     };
-
-    const mapGender = (id?: string): 'M' | 'F' | 'N' | '' => {
-        if (id === 'male') return 'M';
-        if (id === 'female') return 'F';
-        if (id === 'none') return 'N';
-        return '';
-    };
-
-    const toApiBirth = (dob: string) => dob.replaceAll('.', '-'); // "YYYY.MM.DD" -> "YYYY-MM-DD"
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -245,13 +172,10 @@ export default function SignUpPage() {
             loginEmail: formData.email,
             loginPw: formData.password,
             userNickname: formData.nickname,
-
-            // 값이 있을 때만 포맷을 변경하고, 없으면 null을 전송
-            userBirth: formData.dateOfBirth ? toApiBirth(formData.dateOfBirth) : null,
-            userGender: mapGender(selectedGender?.id) || null,
-
-            svcUsePcyAgmtYn: agreements.required ? 'Y' : 'N',
-            psInfoProcAgmtYn: agreements.optional ? 'Y' : 0,
+            userBirth: null,
+            userGender: null,
+            svcUsePcyAgmtYn: 'Y',
+            psInfoProcAgmtYn: 0,
         } as const;
 
         try {
@@ -403,7 +327,6 @@ export default function SignUpPage() {
                                     onChange={handleChange}
                                     className="h-11 w-full rounded-xl border border-[#02F5D0] bg-transparent px-4 pr-16 text-sm text-white placeholder:text-[#444D56] focus:outline-none focus:ring-2 focus:ring-[#02F5D0]/50"
                                 />
-                                {/* 불일치 X 아이콘 */}
                                 {isPasswordMatching ? (
                                     <span className="absolute right-10 top-1/2 -translate-y-1/2 text-base text-[#02F5D0]">
                                         ✔
@@ -475,103 +398,12 @@ export default function SignUpPage() {
                                     {nickVerifying ? 'CHECKING…' : nickVerified === true ? 'OK' : 'VERIFY'}
                                 </button>
                             </div>
-
-                            {/* 생년월일 */}
-                            <input
-                                type="text"
-                                name="dateOfBirth"
-                                placeholder="Date Of Birth (YYYY.MM.DD)"
-                                value={formData.dateOfBirth}
-                                onChange={handleDateChange}
-                                maxLength={10}
-                                className="h-11 w-full rounded-xl border border-[#02F5D0] bg-transparent px-4 text-sm text-white placeholder:text-[#444D56] focus:outline-none focus:ring-2 focus:ring-[#02F5D0]/50"
-                            />
-
-                            {/* 성별 */}
-                            <Listbox value={selectedGender} onChange={setSelectedGender}>
-                                <div className="relative h-11">
-                                    <Listbox.Button className="relative h-full w-full cursor-default rounded-xl border border-[#02F5D0] bg-transparent px-4 text-left text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-white/75">
-                                        <span className={selectedGender ? 'text-white' : 'text-[#444D56]'}>
-                                            {selectedGender ? selectedGender.name : 'Gender (Optional)'}
-                                        </span>
-                                        <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
-                                            <svg
-                                                className="h-4 w-4 fill-current text-[#02F5D0]"
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                viewBox="0 0 20 20"
-                                            >
-                                                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                                            </svg>
-                                        </span>
-                                    </Listbox.Button>
-                                    <Transition
-                                        as={Fragment}
-                                        leave="transition ease-in duration-100"
-                                        leaveFrom="opacity-100"
-                                        leaveTo="opacity-0"
-                                    >
-                                        <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-xl bg-[#2a2b31] py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm">
-                                            {genderOptions.map((gender) => (
-                                                <Listbox.Option
-                                                    key={gender.id}
-                                                    className={({ active }) =>
-                                                        `relative cursor-default select-none py-2 pl-10 pr-4 ${
-                                                            active ? 'bg-[#02F5D0] text-black' : 'text-white'
-                                                        }`
-                                                    }
-                                                    value={gender}
-                                                >
-                                                    {({ selected }) => (
-                                                        <>
-                                                            <span
-                                                                className={`block truncate ${
-                                                                    selected ? 'font-medium' : 'font-normal'
-                                                                }`}
-                                                            >
-                                                                {gender.name}
-                                                            </span>
-                                                            {selected && (
-                                                                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-black">
-                                                                    ✓
-                                                                </span>
-                                                            )}
-                                                        </>
-                                                    )}
-                                                </Listbox.Option>
-                                            ))}
-                                        </Listbox.Options>
-                                    </Transition>
-                                </div>
-                            </Listbox>
                         </div>
-                        {/* 약관 */}
+
+                        {/* 약관 (필수만 남김) */}
                         <div className="space-y-2.5 rounded-2xl border border-[#02F5D0] bg-[#18191B] p-3">
                             <label
-                                onClick={(e) => handleAgreementClick(e, 'all')}
-                                className="flex cursor-pointer items-center space-x-3 text-xs"
-                            >
-                                <input
-                                    type="checkbox"
-                                    name="all"
-                                    checked={agreements.all}
-                                    readOnly
-                                    className="peer sr-only"
-                                />
-                                <div className="flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full border border-[#02F5D0] peer-checked:bg-[#02F5D0]">
-                                    <svg
-                                        className={`h-2.5 w-2.5 fill-current ${
-                                            agreements.all ? 'text-black' : 'text-transparent'
-                                        }`}
-                                        viewBox="0 0 20 20"
-                                    >
-                                        <path d="M0 11l2-2 5 5L18 3l2 2L7 18z" />
-                                    </svg>
-                                </div>
-                                <span>아래 약관에 모두 동의합니다.</span>
-                            </label>
-                            <hr className="border-gray-700" />
-                            <label
-                                onClick={(e) => handleAgreementClick(e, 'required')}
+                                onClick={handleAgreementClick}
                                 className="flex cursor-pointer items-center space-x-3 text-xs"
                             >
                                 <input
@@ -579,7 +411,6 @@ export default function SignUpPage() {
                                     name="required"
                                     checked={agreements.required}
                                     readOnly
-                                    required
                                     className="peer sr-only"
                                 />
                                 <div className="flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full border border-[#02F5D0] peer-checked:bg-[#02F5D0]">
@@ -594,32 +425,11 @@ export default function SignUpPage() {
                                 </div>
                                 <span>[필수] 개인정보 수집 및 이용 동의</span>
                             </label>
-                            <label
-                                onClick={(e) => handleAgreementClick(e, 'optional')}
-                                className="flex cursor-pointer items-center space-x-3 text-xs"
-                            >
-                                <input
-                                    type="checkbox"
-                                    name="optional"
-                                    checked={agreements.optional}
-                                    readOnly
-                                    className="peer sr-only"
-                                />
-                                <div className="flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full border border-[#02F5D0] peer-checked:bg-[#02F5D0]">
-                                    <svg
-                                        className={`h-2.5 w-2.5 fill-current ${
-                                            agreements.optional ? 'text-black' : 'text-transparent'
-                                        }`}
-                                        viewBox="0 0 20 20"
-                                    >
-                                        <path d="M0 11l2-2 5 5L18 3l2 2L7 18z" />
-                                    </svg>
-                                </div>
-                                <span>[선택] 개인정보 수집 및 이용 동의</span>
-                            </label>
                         </div>
+
                         <button
                             type="submit"
+                            disabled={!isFormValid}
                             className="h-11 w-full rounded-xl bg-[#02F5D0] text-sm text-black transition hover:bg-opacity-80 disabled:opacity-60"
                         >
                             {submitting ? 'Registering…' : 'Register'}
@@ -643,11 +453,12 @@ export default function SignUpPage() {
                             </div>
                         </div>
                     )}
+
                     {/* --- 필수 약관 모달 --- */}
                     {showRequiredModal && (
                         <div
                             className="fixed inset-0 z-30 flex items-center justify-center bg-black/60 p-4"
-                            onClick={closeAllModalsAndReset}
+                            onClick={() => setShowRequiredModal(false)}
                         >
                             <div
                                 className="flex w-full max-w-sm flex-col space-y-4 rounded-2xl bg-[#18191B] p-6 text-white"
@@ -666,13 +477,7 @@ export default function SignUpPage() {
                                             고도화를 위한 통계·분석(국내 F1 팬덤 규모 예측 포함, 개인 식별이 불가능한
                                             형태로 처리)
                                         </li>
-                                        <li>
-                                            수집 항목:
-                                            <ul className="list-['-_'] space-y-1 pl-4">
-                                                <li>필수: 이메일, 비밀번호(암호화 저장)</li>
-                                                <li>선택: 생년월일, 성별, 닉네임(사용시)</li>
-                                            </ul>
-                                        </li>
+                                        <li>수집 항목: 이메일, 비밀번호(암호화 저장), 닉네임</li>
                                         <li>
                                             보유·이용기간: 수집일로부터 365일 또는 회원 탈퇴·목적 달성 시까지 중 먼저
                                             도래하는 시점까지 보관하며, 관계 법령에 따른 보존 의무가 있는 경우 해당 기간
@@ -682,68 +487,11 @@ export default function SignUpPage() {
                                     </ul>
                                     <p>
                                         ※ 귀하는 개인정보 수집·이용에 동의하지 않을 권리가 있습니다. 다만 동의하지 않을
-                                        경우 <strong>서비스 이용(회원가입 및 로그인 등)</strong>이 제한될 수 있습니다.
+                                        경우 서비스 이용(회원가입 및 로그인 등)이 제한될 수 있습니다.
                                     </p>
                                 </div>
                                 <button
                                     onClick={handleRequiredAgree}
-                                    className="h-11 w-full rounded-xl bg-[#02F5D0] text-sm text-black transition hover:bg-opacity-80"
-                                >
-                                    확인
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* --- 선택 약관 모달 --- */}
-                    {showOptionalModal && (
-                        <div
-                            className="fixed inset-0 z-30 flex items-center justify-center bg-black/60 p-4"
-                            onClick={closeAllModalsAndReset}
-                        >
-                            <div
-                                className="flex w-full max-w-sm flex-col space-y-4 rounded-2xl bg-[#18191B] p-6 text-white"
-                                onClick={(e) => e.stopPropagation()}
-                            >
-                                <h2 className="text-lg font-bold text-center">
-                                    (선택) 집계·통계 정보의 제한적 외부 제공 동의
-                                </h2>
-                                <div className="max-h-60 space-y-2 overflow-y-auto pr-2 text-xs text-gray-300">
-                                    <p>
-                                        국내 F1 관련 행사 기획 및 팬덤 규모 예측을 위해, 아래와 같이 개인 식별이
-                                        어렵도록 처리한 집계·통계 정보만 외부에 제공할 수 있습니다. 내용을 확인하시고
-                                        동의 여부를 선택해주세요.
-                                    </p>
-                                    <ul className="list-disc space-y-1 pl-4">
-                                        <li>
-                                            제공받는 자: 비상업적 목적을 가진 국내 F1 관련 주최·운영사 및 파트너 (상시
-                                            업데이트)
-                                        </li>
-                                        <li>
-                                            제공 목적: 행사 수요 예측, 운영 계획 수립, 팬덤 트렌드 분석 등 통계·연구
-                                            목적만 (광고·영업 목적 사용 금지)
-                                        </li>
-                                        <li>
-                                            제공 항목: 집계·통계 정보 (예: 연령대·성별 비율, 관심사 분포, 기능 이용 통계
-                                            등)
-                                        </li>
-                                        <li>보호 조치: 최소 집계 단위 기준 적용(예: 10명 이상), 재식별 시도 금지</li>
-                                        <li>
-                                            제공 제외: 이메일, 닉네임, 비밀번호, 생년월일 등 개인을 직접 식별할 수 있는
-                                            정보는 제공하지 않습니다.
-                                        </li>
-                                        <li>
-                                            보유·이용기간(제공받는 자 기준): 제공일로부터 365일 또는 목적 달성 시까지 중
-                                            먼저 도래하는 시점까지 보관 후 지체 없이 파기
-                                        </li>
-                                        <li>국외 이전: 실시 시 사전 고지 및 별도 동의</li>
-                                    </ul>
-                                    <p>
-                                        ※ 본 동의는 선택사항이며, 동의하지 않아도 기본 서비스 이용에는 영향이 없습니다.
-                                    </p>
-                                </div>
-                                <button
-                                    onClick={handleOptionalAgree}
                                     className="h-11 w-full rounded-xl bg-[#02F5D0] text-sm text-black transition hover:bg-opacity-80"
                                 >
                                     확인

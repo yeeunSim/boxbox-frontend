@@ -15,7 +15,7 @@ interface User {
     likes: number;
     message: string;
     isLiked: boolean;
-    rank: number;
+    rank?: number;
 }
 
 const PodiumPage = () => {
@@ -55,13 +55,12 @@ const PodiumPage = () => {
                 dataFromApi = await podiumAPI.getPodiumList(reset ? 0 : page, sortOption);
             }
 
-            const formattedUsers: User[] = dataFromApi.map((item, index) => ({
+            const formattedUsers: User[] = dataFromApi.map((item) => ({
                 id: item.radioSn,
                 nickname: item.writerNickname,
                 likes: item.likeCount,
                 message: lang === 'ko' ? item.previewKor : item.previewEng,
-                isLiked: item.likeYn,
-                rank: index + 1
+                isLiked: item.likeYn
             }));
 
             if (reset) {
@@ -148,8 +147,8 @@ const PodiumPage = () => {
     };
 
     /*목록 아이템 클릭 시 실행될 새로운 함수 */
-    const handleItemClick = async (userFromList: User) => {
-        setSelectedUser(userFromList);
+    const handleItemClick = async (userFromList: User, currentRank: number) => {
+        setSelectedUser({ ...userFromList, rank: currentRank });
         setIsModalLoading(true);
 
         const detailData = await podiumAPI.getPodiumDetail(userFromList.id);
@@ -161,6 +160,7 @@ const PodiumPage = () => {
                 nickname: detailData.writerNickname, // 닉네임
                 message: lang === 'ko' ? detailData.radioTextKor : detailData.radioTextEng,
                 isLiked: detailData.likeYn,
+                rank: currentRank
             };
             setSelectedUser(detailedUser);
         } else {
@@ -241,7 +241,7 @@ const PodiumPage = () => {
                             return (
                                 <li
                                     key={user.id}
-                                    onClick={() => handleItemClick(user)}
+                                    onClick={() => handleItemClick(user, idx + 1)}
                                     className={`
                                         cursor-pointer rounded-lg px-4 py-3 flex items-center justify-between
                                         bg-[#22202A] 

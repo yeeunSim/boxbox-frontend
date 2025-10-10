@@ -47,7 +47,7 @@ export default function LoginPage() {
 
             if (code === 'USER_NOT_FOUND' || ax.response?.status === 404 || ax.response?.status === 401) {
                 setModalTitle('Account not found');
-                setModalMsg('이메일이나 비밀번호가 틀렸습니다.');
+                setModalMsg('아이디나 비밀번호가 틀렸습니다.');
                 setSecondaryText('Sign up');
                 setOnSecondary(() => () => router.push('/sign-up'));
             } else {

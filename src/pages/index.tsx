@@ -139,6 +139,8 @@ const MainPage = () => {
                         wjdwlr03@gmail.com
                     </a>
                 </p>
+                <p className="text-[12px] text-gray-400">본 사이트는 비영리·비상업적 팬 프로젝트로,</p>
+                <p className="text-[12px] text-gray-400">어떠한 상업적 목적도 지니지 않음을 명시합니다.</p>
             </div>
         </div>
     );

@@ -58,7 +58,7 @@ export default function SignUpPage() {
     // 이메일 중복확인
     const handleEmailVerify = async () => {
         const email = formData.email?.trim();
-        if (!email) return alert('이메일을 입력해 주세요.');
+        if (!email) return alert('아이디 입력해 주세요.');
 
         try {
             setEmailVerifying(true);
@@ -66,7 +66,7 @@ export default function SignUpPage() {
 
             await verifyAPI.checkEmailAvailable(email);
             setEmailVerified(true);
-            alert('사용 가능한 이메일입니다.');
+            alert('사용 가능한 아이디입니다.');
         } catch (err) {
             if (axios.isAxiosError<ApiErrorBody>(err)) {
                 const status = err.response?.status;
@@ -74,13 +74,13 @@ export default function SignUpPage() {
 
                 if (status === 409) {
                     setEmailVerified(false);
-                    alert('이미 사용 중인 이메일입니다.');
+                    alert('이미 사용 중인 아이디입니다.');
                 } else if (status === 400) {
                     setEmailVerified(false);
-                    alert('형식이 맞지 않는 이메일입니다.');
+                    alert('형식이 맞지 않는 아이디입니다.');
                 } else {
                     setEmailVerified(false);
-                    alert(msg || '이메일 확인 중 오류가 발생했어요.');
+                    alert(msg || '아이디 확인 중 오류가 발생했어요.');
                 }
             } else {
                 setEmailVerified(false);
@@ -141,7 +141,7 @@ export default function SignUpPage() {
         e.preventDefault();
 
         if (emailVerified !== true) {
-            setModalMsg('이메일 중복확인을 완료해 주세요.');
+            setModalMsg('아이디 중복확인을 완료해 주세요.');
             setShowModal(true);
             return;
         }
@@ -248,9 +248,9 @@ export default function SignUpPage() {
                             <div className="flex items-center gap-2">
                                 <div className="relative w-full">
                                     <input
-                                        type="email"
+                                        type="text"
                                         name="email"
-                                        placeholder="email"
+                                        placeholder="ID"
                                         required
                                         onChange={handleChange}
                                         className="h-11 w-full rounded-xl border border-[#02F5D0] bg-transparent px-4 text-sm text-white placeholder:text-[#444D56] focus:outline-none focus:ring-2 focus:ring-[#02F5D0]/50"

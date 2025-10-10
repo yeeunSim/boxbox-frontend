@@ -103,7 +103,7 @@ export default function LoginPage() {
 
                         <div className="space-y-4">
                             <input
-                                type="email"
+                                type="text"
                                 name="email"
                                 placeholder="ID"
                                 value={loginEmail}
